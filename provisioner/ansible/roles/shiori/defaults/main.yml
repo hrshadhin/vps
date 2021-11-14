@@ -1,0 +1,13 @@
+---
+# defaults file for shiori
+shiori_version: 1.5.0
+shiori_domain_name: example.com
+shiori_directory_name: "{{shiori_domain_name}}"
+shiori_binary_install_dir: /usr/local/bin
+shiori_port: 8080
+shiori_dbms: mysql
+shiori_db_host: 127.0.0.1
+shiori_db_port: 3306
+shiori_db_user: setme
+shiori_db_pass: setme
+shiori_db_name: shiori

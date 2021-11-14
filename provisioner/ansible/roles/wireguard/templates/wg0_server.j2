@@ -1,0 +1,22 @@
+#jinja2: lstrip_blocks:"True",trim_blocks:"True"
+
+# {{ ansible_managed }}
+
+[Interface]
+Address = {{ wg_private_ip }}/24
+SaveConfig = true
+PrivateKey = {{ wg_privatekey['content'] | b64decode | replace('\n', '')}}
+ListenPort = {{ wg_listen_port }}
+
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+
+{% for item in wg_user_publickey.results %}
+{% if item.item.value.remove == False %}
+[Peer]
+# {{ item.item.value.username }}
+PublicKey = {{ item['content'] | b64decode | replace('\n', '') }}
+AllowedIps = {{ item.item.value.private_ip }}/32
+
+{% endif %}
+{% endfor %}

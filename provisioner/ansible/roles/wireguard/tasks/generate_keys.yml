@@ -1,0 +1,15 @@
+---
+- name: Check config/private key already exists on target host
+  stat:
+    path: "{{wg_conf_dir}}/wg0.conf"
+  register: wireguard_config_file
+
+- name: Create wireguard config dir
+  file:
+    path: "{{wg_conf_dir}}"
+    state: directory
+  when: not wireguard_config_file.stat.exists
+
+- name: Generate wireguard server keypair
+  shell: "umask 077 && wg genkey | tee {{ wg_conf_dir }}/privatekey | wg pubkey > {{ wg_conf_dir }}/publickey"
+  when: not wireguard_config_file.stat.exists

@@ -1,0 +1,13 @@
+---
+# handlers file for vaultwarden
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Restart vaultwarden
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: vaultwarden
+    state: restarted

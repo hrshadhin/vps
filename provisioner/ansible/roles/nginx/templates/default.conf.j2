@@ -1,0 +1,87 @@
+{% if is_local %}
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	server_name _;
+    
+	root /var/www/html;
+	index index.html index.nginx-debian.html;
+}
+{% else %}
+include /etc/nginx/snippets/maps.conf;
+
+server {
+	if ($host = {{primary_domain}}) {
+        return 301 https://$host$request_uri;
+    }
+
+	listen 80;
+	listen [::]:80 ipv6only=on default_server;
+
+	server_name {{primary_domain}};
+    return 404;
+}
+
+server {
+	##
+	# Basic Settings
+	#
+	listen 443 ssl;
+	listen [::]:443 ssl ipv6only=on;
+	server_name {{primary_domain}};
+
+	root /var/www/html/{{primary_domain}};
+	index index.html;
+
+	charset utf-8;
+	expires $expires;
+	include /etc/nginx/snippets/headers.conf;	
+	include /etc/nginx/snippets/cloud-flare-ips.conf;
+
+	##
+	# SSL Settings
+	##
+	ssl_certificate /etc/letsencrypt/live/{{primary_domain}}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{primary_domain}}/privkey.pem;
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+	##
+	# Path & Error Settings
+	##
+	location / {
+		if ($request_uri ~ ^/(.*)\.html) {
+			return 302 /$1;
+		}
+		
+		try_files $uri $uri.html $uri/ =404;
+	}
+
+	error_page 404 /404.html;
+	location  /404.html {
+		internal;
+	}
+	
+	##
+	# Logging Settings
+	##
+	access_log  /var/log/nginx/{{primary_domain}}_access.log;
+	error_log   /var/log/nginx/{{primary_domain}}_error.log;	
+	
+	location  /robots.txt {
+		access_log off;
+	}
+	
+	location ~ /favicon.png {
+		access_log off;
+	}
+	
+
+	##
+	# Gzip Settings
+	##
+	gzip on;
+	gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+}
+{% endif %}

@@ -1,0 +1,13 @@
+---
+# handlers file for shiori
+- name: Restart shiori_server
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: shiori_server
+    state: restarted
+
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted

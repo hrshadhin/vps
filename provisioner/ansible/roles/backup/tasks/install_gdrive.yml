@@ -1,0 +1,78 @@
+---
+- name: Run whoami without become.
+  command: whoami
+  changed_when: false
+  become: false
+  register: whoami
+
+- block:
+    - name: Set variables
+      set_fact:
+        __gdrive_tar_file_name: "gdrive_{{gdrive_version}}_linux_{{go_arch}}.tar.gz"
+        __gdrive_checksum: "{{ lookup('url', 'https://github.com/prasmussen/gdrive/releases/download/' + gdrive_version + '/gdrive_' + gdrive_version + '_linux_' + go_arch + '_checksum.txt') }}"
+      run_once: true
+
+    - name: Download gdrive binary to local folder
+      become: false
+      get_url:
+        url: "https://github.com/prasmussen/gdrive/releases/download/{{gdrive_version}}/{{__gdrive_tar_file_name}}"
+        dest: "/tmp/{{__gdrive_tar_file_name}}"
+        checksum: "md5:{{ __gdrive_checksum }}"
+      register: _download_archive
+      until: _download_archive is succeeded
+      retries: 5
+      delay: 2
+      delegate_to: localhost
+      check_mode: false
+
+    - name: Unpack gdrive binary
+      become: false
+      unarchive:
+        src: "/tmp/{{__gdrive_tar_file_name}}"
+        dest: "/tmp"
+        creates: "/tmp/gdrive"
+      delegate_to: localhost
+      check_mode: false
+
+    - name: Propagate official gdrive binary
+      copy:
+        src: "/tmp/gdrive"
+        dest: "{{ gdrive_binary_install_dir }}/gdrive"
+        mode: "0755"
+        owner: root
+        group: root
+  when: not gdrive_build_binary
+
+- block:
+    - name: Build gdrive from source code
+      become: false
+      delegate_to: localhost
+      shell: "go get github.com/prasmussen/gdrive@{{gdrive_version}}"
+      args:
+        creates: "{{ lookup('env', 'GOPATH') | default('~/go', True) }}/bin/gdrive"
+
+    - name: Propagate official gdrive binary
+      copy:
+        src: "{{ lookup('env', 'GOPATH') | default('~/go', True) }}/bin/gdrive"
+        dest: "{{ gdrive_binary_install_dir }}/gdrive"
+        mode: 0755
+        owner: root
+        group: root
+  when: gdrive_build_binary
+
+- name: Ensure .gdrive exists
+  become: false
+  file:
+    path: ~/.gdrive
+    owner: "{{login_user}}"
+    group: "{{login_user}}"
+    mode: "0700"
+    state: directory
+    recurse: true
+
+- name: Create gdrive service json file
+  become: false
+  shell: 'echo "{{gservice_account_json_base64}}" | base64 -d > ~/.gdrive/{{gservice_account_json_file}}'
+  args:
+    chdir: ~
+    creates: "~/.gdrive/{{gservice_account_json_file}}"

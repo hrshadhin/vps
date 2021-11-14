@@ -1,0 +1,13 @@
+---
+# handlers file for dnote
+- name: Restart dnote_server
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: dnote_server
+    state: restarted
+
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted

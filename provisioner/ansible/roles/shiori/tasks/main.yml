@@ -1,0 +1,91 @@
+---
+# tasks file for shiori
+- name: Clone shiori source code
+  become: false
+  delegate_to: localhost
+  git:
+    repo: https://github.com/go-shiori/shiori.git
+    dest: /tmp/shiori
+    single_branch: yes
+    version: master
+
+- name: Build shiori from source code
+  become: false
+  delegate_to: localhost
+  shell: go build -o shiori_server
+  args:
+    chdir: /tmp/shiori
+    creates: /tmp/shiori/shiori_server
+
+- name: Propagate shiori_server binary
+  copy:
+    src: /tmp/shiori/shiori_server
+    dest: "{{ shiori_binary_install_dir }}/shiori_server"
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - Restart shiori_server
+# - name: Download & install shiori binary
+#   get_url:
+#     url: "https://github.com/go-shiori/shiori/releases/download/v{{shiori_version}}/shiori-linux-{{ go_arch }}"
+#     dest: "{{ shiori_binary_install_dir }}/shiori_server"
+#     mode: "0755"
+#   notify:
+#     - Restart shiori_server
+
+- name: Create shiori_server systemd service unit
+  template:
+    src: shiori_server.service.j2
+    dest: /etc/systemd/system/shiori_server.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart shiori_server
+
+- name: Create robots.txt
+  copy:
+    content: "User-agent: *\nDisallow: /\n"
+    dest: "/var/www/html/{{shiori_domain_name}}/robots.txt"
+
+- name: Ensure {{shiori_domain_name}} directory permission for webserver
+  file:
+    path: /var/www/html/{{shiori_domain_name}}
+    owner: www-data
+    group: www-data
+    mode: "0755"
+    recurse: yes
+
+- name: Ensure {{shiori_domain_name}} file exists for nginx
+  template:
+    src: nginx_http.conf.j2
+    dest: /etc/nginx/sites-available/{{shiori_domain_name}}
+    mode: "0644"
+  vars:
+    domain_name: "{{shiori_domain_name}}"
+
+- name: Enable {{shiori_domain_name}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{shiori_domain_name}}
+    dest: /etc/nginx/sites-enabled/{{shiori_domain_name}}
+    state: link
+  notify: Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+# - name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{shiori_domain_name}}
+#   command: "certbot --{{ certbot_plugin }} -d  {{ shiori_domain_name }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+#   when: is_local is defined and not is_local
+
+- name: Copy {{shiori_domain_name}} https nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{shiori_domain_name}}
+    mode: "0644"
+  vars:
+    domain_name: "{{shiori_domain_name}}"
+  notify:
+    - Restart nginx
+  when: is_local is defined and not is_local

@@ -1,0 +1,43 @@
+# {{ ansible_managed }}
+# zsh version: {{ zsh_version }}
+# antigen version: {{ zsh_antigen_installed_version }}
+
+export TERM="{{ zsh_term }}"
+export EDITOR="{{ zsh_editor }}"
+export PATH="$PATH:{{ zsh_path | join(":") }}"
+
+HIST_STAMPS="{{ zsh_hist_stamps }}"
+UPDATE_ZSH_DAYS="{{ zsh_update_interval }}"
+COMPLETION_WAITING_DOTS="true"
+
+# ADOTDIR="{{ zsh_antigen_path_compat }}"
+
+ANTIGEN_BUNDLES="{{ zsh_antigen_path_compat }}/bundles"
+ANTIGEN_PLUGIN_UPDATE_DAYS="{{ zsh_update_interval }}"
+ANTIGEN_SYSTEM_UPDATE_DAYS="{{ zsh_update_interval }}"
+
+
+source "{{ zsh_antigen_path_compat }}/antigen/antigen.zsh"
+
+antigen use oh-my-zsh
+
+{% for bundle in zsh_antigen_bundles -%}
+antigen bundle {{ bundle }}
+{% endfor %}
+
+antigen theme {{ zsh_antigen_theme }}
+
+antigen apply
+
+# aliases
+{% for alias in zsh_aliases %}
+alias '{{ alias.alias }}'="{{ alias.action }}"
+{% endfor %}
+
+# fzf
+export FZF_TMUX=0
+export FZF_DEFAULT_OPTS="{{ zsh_fzf_default_opts }}"
+
+# zsh-autosuggestions
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE={{ zsh_autosuggestions_max_length }}
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=240" # gray highlight

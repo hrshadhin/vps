@@ -1,0 +1,57 @@
+upstream blocky_backend {
+	server	127.0.0.1:3004;
+}
+
+server {
+	##
+	# Basic Settings
+	#
+	listen 443 ssl http2;
+	server_name {{blocky_doh_domain}};
+
+	root /var/www/html/blocky;
+	index index.html;
+
+	include /etc/nginx/snippets/headers.conf;	
+	include /etc/nginx/snippets/cloud-flare-ips.conf;
+
+	##
+	# SSL Settings
+	##
+	ssl_certificate /etc/letsencrypt/live/{{blocky_doh_domain}}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{blocky_doh_domain}}/privkey.pem;
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+	##
+	# Path & Error Settings
+	##
+
+	location / {
+		add_header Content-Type text/plain;
+		return 200 'I am alive!';
+	}
+
+	location ~* ^/(dns-query|api) {
+		proxy_pass http://blocky_backend;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+	
+	##
+	# Logging Settings
+	##
+	access_log  /var/log/nginx/{{blocky_doh_domain}}_access.log;
+	error_log   /var/log/nginx/{{blocky_doh_domain}}_error.log;	
+	
+	location  /robots.txt {
+		access_log off;
+	}
+	
+	location ~ /favicon.png {
+		access_log off;
+	}
+	
+}

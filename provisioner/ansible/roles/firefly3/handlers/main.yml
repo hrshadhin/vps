@@ -1,0 +1,13 @@
+---
+# handlers file for firefly3
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Restart firefly3
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: firefly3
+    state: restarted

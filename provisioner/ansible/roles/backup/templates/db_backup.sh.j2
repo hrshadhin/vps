@@ -1,0 +1,94 @@
+#!/bin/bash
+
+{{ ansible_managed | comment }}
+
+# Bail out if there are any errors.
+set -e
+
+#########################
+#    Configurations     #
+#########################
+
+# The local directory where we'll be storing archive
+db_backup_dir="{{db_backup_dir}}"
+backup_dir="$(date +'%Y-%m-%d')"
+full_backup_path="$db_backup_dir/$backup_dir"
+
+# The Google Drive folder ID where files need to be upload
+gdrive_folder_id="{{gdrive_db_folder_id}}"
+
+# Google Service Account Json
+gsaj="{{gservice_account_json_file}}"
+
+# Number of days we want to retain local backups for
+retentiondays={{db_backup_retentiond_days}}
+
+
+#########################
+#   Helper Functions    #
+#########################
+postgresdb_backup_user="{{postgresdb_backup_user}}"
+
+backup_mysql_db () {
+  databases=("$@")
+  for database in "${databases[@]}";
+    do
+      echo "backuping ---> $database"
+      mysqldump --no-tablespaces --lock-tables $database | gzip > "$full_backup_path/$database.sql.gz"
+    done
+
+}
+
+backup_postgres_db () {
+  databases=("$@")
+  for database in "${databases[@]}";
+    do
+      echo "backuping ---> $database"
+      pg_dump -h localhost -U $postgresdb_backup_user -Fc $database > "$full_backup_path/$database.dump"
+    done
+
+}
+
+upload_to_gdrive () {
+  /usr/local/bin/gdrive --service-account $gsaj  upload --parent $gdrive_folder_id $1
+}
+
+
+#########################
+# Do pre-process tasks  #
+#########################
+
+# Make sure the directory exists
+mkdir -p $full_backup_path
+
+# Delete local export files older than our retentiondays value
+find $db_backup_dir -type f -name "*.tar.gz" -mtime +"$retentiondays" -print -exec rm "{}" \;
+
+
+#########################
+#     Start Backups     #
+#########################
+
+##
+# MariaDB
+##
+dbs=({{ backup_mariadbs | join(" ") }})
+backup_mysql_db "${dbs[@]}"
+
+##
+# Postgresql
+##
+dbs=({{ backup_postgresdbs | join(" ") }})
+backup_postgres_db "${dbs[@]}"
+
+# archive all backups
+final_arc_file="$db_backup_dir/$(date +'%Y-%m-%d_%H_%M_%S').tar.gz" 
+tar -C $db_backup_dir -czvf $final_arc_file $backup_dir
+
+# clean backup dir
+rm -rf $full_backup_path
+
+# upload to gdrive
+upload_to_gdrive $final_arc_file
+
+echo "<= Done! =>"

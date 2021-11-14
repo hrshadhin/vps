@@ -1,0 +1,26 @@
+---
+- name: Install ufw
+  apt: package=ufw state=present
+
+- name: Configure ufw defaults
+  ufw: direction={{ item.direction }} policy={{ item.policy }}
+  with_items:
+    - { direction: "incoming", policy: "deny" }
+    - { direction: "outgoing", policy: "allow" }
+  notify:
+    - restart ufw
+
+- name: Configure ufw rules
+  ufw: rule={{ item.rule }} port={{ item.port }} proto={{ item.proto }} src={{ item.src }}
+  with_items: "{{ufw_rules}}"
+  notify:
+    - restart ufw
+  when: ufw_rules != []
+
+- name: Enable ufw logging
+  ufw: logging=on
+  notify:
+    - restart ufw
+
+- name: Enable ufw
+  ufw: state=enabled

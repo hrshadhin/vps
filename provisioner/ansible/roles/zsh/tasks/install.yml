@@ -1,0 +1,86 @@
+---
+- name: Update package cache
+  become: true
+  package:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install zsh, git, wget
+  become: true
+  package:
+    name:
+      - zsh
+      - git
+      - wget
+    state: present
+
+- name: Clone antigen {{ zsh_antigen_version }}
+  git:
+    repo: https://github.com/zsh-users/antigen.git
+    dest: "{{ zsh_antigen_path }}/antigen"
+    version: "{{ zsh_antigen_version }}"
+    force: yes
+  register: zsh_register_antigen_clone
+
+- name: Set directory permissions
+  file:
+    name: "{{ zsh_antigen_path }}"
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user_group }}"
+    recurse: yes
+  changed_when: false
+
+- name: Check fzf installed
+  stat:
+    path: "{{ zsh_fzf_path }}/fzf"
+  register: check_fzf
+
+- block:
+    - name: Ensure users home binary folder is present
+      file:
+        path: "{{ zsh_fzf_path }}"
+        owner: "{{ zsh_user }}"
+        group: "{{ zsh_user_group }}"
+        mode: u=rwx,g=rwx,o=rx
+        state: directory
+    - block:
+        - name: "Get fzf checksum list"
+          set_fact:
+            __fzf_checksums: "{{ lookup('url', zsh_fzf_check_sum_url, wantlist=True) | list }}"
+          run_once: true
+
+        - name: "Get fzf checksum for {{ os_arch }} architecture"
+          set_fact:
+            __fzf_checksum: "{{ item.split(' ')[0] }}"
+          with_items: "{{ __fzf_checksums }}"
+          when:
+            - "('linux_' + os_arch + '.tar.gz') in item"
+
+        - name: Download fzf binary to local folder
+          get_url:
+            url: "{{zsh_fzf_url}}"
+            dest: "/tmp/{{zsh_fzf_file_name}}"
+            checksum: "sha256:{{ __fzf_checksum }}"
+          register: _download_archive
+          until: _download_archive is succeeded
+          retries: 5
+          delay: 2
+          check_mode: false
+
+        - name: Unpack fzf binary
+          unarchive:
+            src: "/tmp/{{zsh_fzf_file_name}}"
+            dest: "/tmp/"
+            creates: "/tmp/fzf"
+          delegate_to: localhost
+          check_mode: false
+      delegate_to: localhost
+
+    - name: Propagate fzf binary
+      copy:
+        src: "/tmp/fzf"
+        dest: "{{ zsh_fzf_path }}/fzf"
+        mode: 0755
+        owner: "{{ zsh_user }}"
+        group: "{{ zsh_user }}"
+  when: not check_fzf.stat.exists

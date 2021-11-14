@@ -1,0 +1,19 @@
+{
+  "serverRoot": "{{focalboard_web_url}}",
+  "port": {{focalboard_port}},
+  "dbtype": "{{focalboard_db_type}}",
+{% if focalboard_db_type == 'postgres' %}
+  "dbconfig": "postgres://{{focalboard_db_user}}:{{focalboard_db_pass}}@{{focalboard_db_host}}:{{focalboard_db_port}}/{{focalboard_db_name}}?sslmode={{focaboard_db_sslmode}}&connect_timeout={{focalboard_db_connection_timeout}}",
+{% else %}
+  "dbconfig": "{{focalboard_db_user}}:{{focalboard_db_pass}}@tcp({{focalboard_db_host}}:{{focalboard_db_port}})/{{focalboard_db_name}}",
+{% endif %}
+  "useSSL": {{focalboard_useSSL}},
+  "webpath": "{{focalboard_webpath}}",
+  "filespath": "{{focalboard_filespath}}",
+  "telemetry": {{focalboard_telemetry}},
+  "session_expire_time": {{focalboard_session_expire_time}},
+  "session_refresh_time": {{focalboard_session_refresh_time}},
+  "localOnly": {{focalboard_localOnly}},
+  "enableLocalMode": {{focalboard_enableLocalMode}},
+  "localModeSocketLocation": "{{focalboard_localModeSocketLocation}}"
+}

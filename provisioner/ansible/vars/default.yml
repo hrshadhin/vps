@@ -1,0 +1,246 @@
+# Global
+is_local: true
+
+# Basic
+sysadmin_email: sysadmin@hrshadhin.me
+time_zone: Asia/Dhaka
+add_secondary_user: false
+
+# zsh
+zsh_antigen_version: v2.2.3
+zsh_fzf_version: 0.28.0
+
+zsh_antigen_bundles:
+  - git
+  - python
+  - docker
+  - docker-compose
+  - tmux
+  - zsh-users/zsh-autosuggestions
+  - unixorn/autoupdate-antigen.zshplugin
+  - zsh-users/zsh-syntax-highlighting
+
+zsh_aliases:
+  - { alias: "py", action: "python3" }
+  - { alias: "dfh", action: "df -h" }
+
+# Docker
+docker_host_access_enabled: true
+docker_host_domain: host.docker.internal
+docker_host_ip: 172.17.0.1
+install_docker_compose: true
+docker_compose_version: 1.29.2
+
+# Firewall
+ssh_port: "{{ lookup('env', 'SSH_PORT') | default('22', True) }}"
+ssh_allowed_from: 0.0.0.0/0
+install_fail2ban: true
+install_ufw: true
+ufw_rules:
+  - {
+      rule: "allow",
+      port: '{{ ssh_port | default("22") }}',
+      proto: "tcp",
+      src: '{{ ssh_allowed_from | default("any") }}',
+    }
+  - { rule: "allow", port: 80, proto: "tcp", src: "any" }
+  - { rule: "allow", port: 443, proto: "tcp", src: "any" }
+  - { rule: "allow", port: 5432, proto: "tcp", src: "{{docker_host_ip}}/16" }
+
+# Postgresql
+pg_listen_addresses: "localhost,{{docker_host_ip}}"
+pg_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
+pg_user_password: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }}"
+pg_database_names:
+  - dnote
+  - vaultwarden
+  - honey
+  - focalboard
+  - archive
+pq_hba_mapping:
+  - {
+      type: "host",
+      database: "dnote",
+      user: "{{pg_user}}",
+      address: "127.0.0.1/32",
+      method: "md5",
+    }
+  - {
+      type: "host",
+      database: "vaultwarden",
+      user: "{{pg_user}}",
+      address: "{{docker_host_ip}}/16",
+      method: "md5",
+    }
+  - {
+      type: "host",
+      database: "honey",
+      user: "{{pg_user}}",
+      address: "127.0.0.1/32",
+      method: "md5",
+    }
+  - {
+      type: "host",
+      database: "focalboard",
+      user: "{{pg_user}}",
+      address: "127.0.0.1/32",
+      method: "md5",
+    }
+  - {
+      type: "host",
+      database: "archive",
+      user: "{{pg_user}}",
+      address: "127.0.0.1/32",
+      method: "md5",
+    }
+
+# MariaDB
+mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') | default('setme', True) }}"
+mariadb_user: "{{ lookup('env', 'MARIADB_USER') | default('nobody', True) }}"
+mariadb_user_password: "{{ lookup('env', 'MARIADB_USER_PASSWORD') | default('setme', True) }}"
+mariadb_database_names:
+  - monica
+
+# nginx
+setup_ssl: false
+primary_domain: "{{ lookup('env', 'PRIMARY_DOMAIN') | default('example.com', True) }}"
+certbot_plugin: nginx
+certbot_mail_address: "{{sysadmin_email}}"
+
+# php
+php_version: 8.0
+
+# bitwarden
+vaultwarden_version: 1.23.0
+vaultwarden_db_type: postgresql
+vaultwarden_db_host: "{{docker_host_domain}}"
+vaultwarden_db_port: 5432
+vaultwarden_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
+vaultwarden_db_password: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }}"
+vaultwarden_db_name: vaultwarden
+vaultwarden_sends_enabled: "false"
+vaultwarden_signups_allowed: "false"
+vaultwarden_signups_verify: "true"
+vaultwarden_emergency_access_allowed: "false"
+vaultwarden_domain: "{{ lookup('env', 'VAULT_DOMAIN') | default('setme', True) }}"
+vaultwarden_smtp_host: "{{ lookup('env', 'SMTP_HOST') | default('setme', True) }}"
+vaultwarden_smtp_port: "{{ lookup('env', 'SMTP_PORT') | default('465', True) }}"
+vaultwarden_smtp_from: "{{ lookup('env', 'SMTP_FROM') | default('setme', True) }}"
+vaultwarden_smtp_from_name: "{{ lookup('env', 'SMTP_FROM_NAME') | default('setme', True) }}"
+vaultwarden_smtp_username: "{{ lookup('env', 'SMTP_USERNAME') | default('setme', True) }}"
+vaultwarden_smtp_password: "{{ lookup('env', 'SMTP_PASSWORD') | default('setme', True) }}"
+
+# websites
+static_sites: "{{ lookup('env', 'STATIC_WEBSITES') | default('', True) | split(',') | select | map('trim') }}"
+
+# archive/bookmarks
+shiori_domain_name: "{{ lookup('env', 'SHIORI_DOMAIN') | default('setme', True) }}"
+shiori_port: 3001
+shiori_dbms: postgresql
+shiori_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
+shiori_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('setme', True) }}"
+shiori_db_name: archive
+
+# finance
+firefly3_version: 5.6.4
+firefly3_site_owner: "{{sysadmin_email}}"
+firefly3_tz: Asia/Dhaka
+
+firefly3_db_type: pgsql
+firefly3_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
+firefly3_db_password: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }}"
+firefly3_db_name: honey
+
+firefly3_smtp_host: "{{ lookup('env', 'SMTP_HOST') | default('setme', True) }}"
+firefly3_smtp_port: "{{ lookup('env', 'SMTP_PORT') | default('465', True) }}"
+firefly3_smtp_from: "{{ lookup('env', 'SMTP_FROM') | default('setme', True) }}"
+firefly3_smtp_username: "{{ lookup('env', 'SMTP_USERNAME') | default('setme', True) }}"
+firefly3_smtp_password: "{{ lookup('env', 'SMTP_PASSWORD') | default('setme', True) }}"
+
+firefly3_app_name: Honey
+firefly3_domain: "{{ lookup('env', 'FIREFLY3_DOMAIN') | default('setme', True) }}"
+firefly3_app_key: "{{ lookup('env', 'FIREFLY3_APP_KEY') | default('setme', True) }}"
+
+# dnote
+dnote_version: 1.0.4
+dnote_domain_name: "{{ lookup('env', 'DNOTE_DOMAIN') | default('setme', True) }}"
+dnote_port: 3002
+dnote_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
+dnote_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }}"
+dnote_db_name: dnote
+
+# focalboard
+focalboard_version: 0.10.0
+focalboard_domain_name: "{{ lookup('env', 'FOCALBOARD_DOMAIN') | default('setme', True) }}"
+focalboard_port: 3003
+focalboard_db_type: postgres
+focalboard_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
+# password should be url encoded
+focalboard_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }}"
+focalboard_db_name: focalboard
+
+# monica
+monica_version: 3.5.0
+
+monica_db_user: "{{ lookup('env', 'MARIADB_USER') | default('nobody', True) }}"
+monica_db_password: "{{ lookup('env', 'MARIADB_USER_PASSWORD') | default('nobody', True) }}"
+monica_db_name: monica
+
+monica_smtp_host: "{{ lookup('env', 'SMTP_HOST') | default('setme', True) }}"
+monica_smtp_port: "{{ lookup('env', 'SMTP_PORT') | default('465', True) }}"
+monica_smtp_from: "{{ lookup('env', 'SMTP_FROM') | default('setme', True) }}"
+monica_smtp_username: "{{ lookup('env', 'SMTP_USERNAME') | default('setme', True) }}"
+monica_smtp_password: "{{ lookup('env', 'SMTP_PASSWORD') | default('setme', True) }}"
+
+monica_domain: "{{ lookup('env', 'MONICA_DOMAIN') | default('setme', True) }}"
+monica_app_url: "{{ 'http' if is_local is defined and is_local else 'https' }}://{{monica_domain}}"
+monica_app_key: "{{ lookup('env', 'MONICA_APP_KEY') | default('setme', True) }}"
+monica_hash_salt: "{{ lookup('env', 'MONICA_HASH_SALT') | default('change_me_key_length', True) }}"
+monica_hash_length: "{{ lookup('env', 'MONICA_HASH_LENGTH') | default('18', True) }}"
+monica_disable_signup: "true"
+monica_mfa_enabled: "true"
+monica_dav_enabled: "false"
+
+# backup
+gdrive_version: 2.1.1
+gdrive_build_binary: true
+gservice_account_json_base64: "{{ lookup('env', 'GSERVICE_ACCOUNT_JSON_BASE64') | default('setme', True) }}"
+gdrive_app_folder_id: "{{ lookup('env', 'GDRIVE_APP_FOLDER_ID') | default('setme', True) }}"
+gdrive_db_folder_id: "{{ lookup('env', 'GDRIVE_DB_FOLDER_ID') | default('setme', True) }}"
+
+## apps
+backup_apps: "{
+  '{{primary_domain}}': ['*'],
+  '{{vaultwarden_domain}}': ['data/'],
+  '{{shiori_domain_name}}': ['archive/', 'thumb/'],
+  '{{firefly3_domain}}': ['.env', 'storage/oauth-private.key', 'storage/oauth-public.key', 'storage/upload/'],
+  '{{monica_domain}}': ['.env', 'storage/oauth-private.key', 'storage/oauth-public.key', 'storage/upload/'],
+  }"
+
+## websites
+backup_sites: "{{static_sites}}"
+backup_exclude_sites: "{{ lookup('env', 'BACKUP_EXCLUDE_WEBSITES') | default('', True) | split(',') | select | map('trim') }}"
+
+## DBs
+mariadb_backup_user: "{{ mariadb_user }}"
+mariadb_backup_user_password: "{{ mariadb_user_password }}"
+backup_mariadbs: "{{ mariadb_database_names }}"
+postgresdb_backup_user: "{{ pg_user }}"
+postgresdb_backup_user_password: "{{ pg_user_password }}"
+backup_postgresdbs: "{{ pg_database_names }}"
+
+## Blocky
+blocky_doh: false
+blocky_doh_domain: "{{ lookup('env', 'DOH_DOMAIN') | default('setme', True) }}"
+blocky_behind_proxy: true
+blocky_http_port: 3004
+
+## Wireguard
+wg_server_public_ip: "{{ '192.168.60.60' if is_local is defined and is_local else '' }}"
+wg_listen_port: "{{ lookup('env', 'WG_LISTEN_PORT') | default('51820', True) }}"
+wg_user_list:
+  hrsd: { username: "hrsd", private_ip: "10.8.0.2", remove: no }
+  hrsl: { username: "hrsl", private_ip: "10.8.0.3", remove: no }
+  hrsp: { username: "hrsp", private_ip: "10.8.0.4", remove: no }
+  hr01: { username: "hr01", private_ip: "10.8.0.5", remove: no }
+  hl01: { username: "hl01", private_ip: "10.8.0.6", remove: no }

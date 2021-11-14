@@ -1,0 +1,24 @@
+---
+# defaults file for firefly3
+firefly3_version: 5.6.4
+firefly3_site_owner: dev@setme
+firefly3_tz: Asia/Dhaka
+
+firefly3_db_type: pgsql
+firefly3_db_host: localhost
+firefly3_db_port: 5432
+firefly3_db_user: nobody
+firefly3_db_password: setme
+firefly3_db_name: firefly_iii
+
+firefly3_smtp_host: setme
+firefly3_smtp_port: 465
+firefly3_smtp_from: setme
+firefly3_smtp_username: setme
+firefly3_smtp_password: setme
+firefly3_smtp_encryption: "tls"
+
+firefly3_app_name: FireflyIII
+firefly3_domain: "localhost:8000"
+firefly3_app_url: "https://{{firefly3_domain}}"
+firefly3_app_key: something_every_storng_key_here

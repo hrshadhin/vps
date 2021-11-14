@@ -1,0 +1,110 @@
+---
+# tasks file for dnote
+- block:
+    - name: "Get dnote_server checksum list"
+      set_fact:
+        __dnote_server_checksums: "{{ lookup('url', 'https://github.com/dnote/dnote/releases/download/server-v' + dnote_version + '/dnote_' + dnote_version + '_checksums.txt', wantlist=True) | list }}"
+      run_once: true
+
+    - name: "Get dnote_server checksum for {{ go_arch }} architecture"
+      set_fact:
+        __dnote_server_checksum: "{{ item.split(' ')[0] }}"
+      with_items: "{{ __dnote_server_checksums }}"
+      when:
+        - "('linux_' + go_arch + '.tar.gz') in item"
+  delegate_to: localhost
+
+- name: Download dnote_server binary to local folder
+  become: false
+  get_url:
+    url: "https://github.com/dnote/dnote/releases/download/server-v{{dnote_version}}/dnote_server_{{dnote_version}}_linux_{{ go_arch }}.tar.gz"
+    dest: "/tmp/dnote_server-{{ dnote_version }}.linux-{{ go_arch }}.tar.gz"
+    checksum: "sha256:{{ __dnote_server_checksum }}"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  delegate_to: localhost
+  check_mode: false
+
+- name: Ensure /tmp/dnote_server directory exists
+  become: false
+  file:
+    path: /tmp/dnote_server
+    state: directory
+  delegate_to: localhost
+
+- name: Unpack dnote_server binary
+  become: false
+  unarchive:
+    src: "/tmp/dnote_server-{{ dnote_version }}.linux-{{ go_arch }}.tar.gz"
+    dest: "/tmp/dnote_server"
+    creates: "/tmp/dnote_server-{{ dnote_version }}.linux-{{ go_arch }}/dnote-server"
+  delegate_to: localhost
+  check_mode: false
+
+- name: Propagate official dnote_server binary
+  copy:
+    src: "/tmp/dnote_server/dnote-server"
+    dest: "{{ dnote_binary_install_dir }}/dnote_server"
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - Restart dnote_server
+
+- name: Create dnote_server systemd service unit
+  template:
+    src: dnote_server.service.j2
+    dest: /etc/systemd/system/dnote_server.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart dnote_server
+    -
+- name: Create robots.txt
+  copy:
+    content: "User-agent: *\nDisallow: /\n"
+    dest: "/var/www/html/{{dnote_domain_name}}/robots.txt"
+
+- name: Ensure {{dnote_domain_name}} directory permission for webserver
+  file:
+    path: /var/www/html/{{dnote_domain_name}}
+    owner: www-data
+    group: www-data
+    mode: "0755"
+    recurse: yes
+
+- name: Ensure {{dnote_domain_name}} file exists for nginx
+  template:
+    src: nginx_http.conf.j2
+    dest: /etc/nginx/sites-available/{{dnote_domain_name}}
+    mode: "0644"
+  vars:
+    domain_name: "{{dnote_domain_name}}"
+
+- name: Enable {{dnote_domain_name}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{dnote_domain_name}}
+    dest: /etc/nginx/sites-enabled/{{dnote_domain_name}}
+    state: link
+  notify: Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{dnote_domain_name}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ dnote_domain_name }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: is_local is defined and not is_local
+
+- name: Copy {{dnote_domain_name}} https nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{dnote_domain_name}}
+    mode: "0644"
+  vars:
+    domain_name: "{{dnote_domain_name}}"
+  notify:
+    - Restart nginx
+  when: is_local is defined and not is_local

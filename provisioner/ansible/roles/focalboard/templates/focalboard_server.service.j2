@@ -1,0 +1,20 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description=Starts focalboard server
+Requires=network.target
+After=network.target
+ 
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/html/{{focalboard_domain_name}}
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart={{ focalboard_binary_install_dir }}/focalboard_server
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

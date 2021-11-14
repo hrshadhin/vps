@@ -1,0 +1,13 @@
+---
+- name: Ensure Redis is present
+  apt: name=redis-server state=latest
+
+- name: Ensure Redis is started
+  service: name=redis-server state=started enabled=yes
+
+- name: Ensure Redis Configuration
+  template: src=redis.conf.j2 dest=/etc/redis/redis.conf owner=root group=root mode=0644
+  notify: redis restart
+
+- name: Flush all handlers at this point
+  meta: flush_handlers

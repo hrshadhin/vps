@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:{{vaultwarden_version}}
+    container_name: vaultwarden
+    restart: unless-stopped
+    env_file:
+        - .env
+    network_mode: bridge
+    ports:
+      - 127.0.0.1:{{vaultwarden_port}}:80
+{% if vaultwarden_websocket_enabled %}
+      - 127.0.0.1:{{vaultwarden_websocket_port}}:30122
+{% endif %}
+    volumes:
+      - ./data:/data
+{% if docker_host_access_enabled is defined and docker_host_access_enabled %}
+    extra_hosts:
+      - "{{docker_host_domain}}:{{docker_host_ip}}"
+{% endif %}

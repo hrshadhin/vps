@@ -1,0 +1,9 @@
+---
+# defaults file for blocky
+blocky_install_path: /var/www/html/blocky
+blocky_doh: false
+blocky_doh_domain:
+blocky_behind_proxy: false
+blocky_http_port: 4000
+blocky_cert_file_path:
+blocky_key_file_path:

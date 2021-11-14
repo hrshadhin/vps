@@ -1,0 +1,89 @@
+upstream:
+  default:
+    - 176.103.130.130
+    - 176.103.130.131
+    - 208.67.222.123
+    - 208.67.220.123
+    - 1.1.1.1
+    - 8.8.8.8
+
+upstreamTimeout: 2s
+
+customDNS:
+  mapping:
+    router.lan: 192.168.3.1
+
+blocking:
+  blackLists:
+    ads:
+      - https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
+      - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+      - http://sysctl.org/cameleon/hosts
+      - https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
+    special:
+      - https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews/hosts
+
+  clientGroupsBlock:
+    default:
+      - ads
+      - special
+
+  blockType: zeroIp
+  blockTTL: 1m
+  refreshPeriod: 4h
+  downloadTimeout: 4m
+  downloadAttempts: 5
+  downloadCooldown: 10s
+  failStartOnListError: false
+
+caching:
+  minTime: 5m
+  maxTime: -1
+  maxItemsCount: 0
+  prefetching: true
+  prefetchExpires: 2h
+  prefetchThreshold: 5
+  # Max number of domains to be kept in cache for prefetching (soft limit). Useful on systems with limited amount of RAM.
+  # Default (0): unlimited
+  prefetchMaxItemsCount: 200
+
+prometheus:
+  enable: false
+  path: /metrics
+
+# optional: write query information (question, answer, client, duration etc.) to daily csv file
+queryLog:
+  # optional one of: mysql, csv, csv-client. If empty, log to console
+  type:
+  # directory (should be mounted as volume in docker) for csv, db connection string for mysql
+  #target: db_user:db_password@tcp(db_host_or_ip:3306)/db_user?charset=utf8mb4&parseTime=True&loc=Local
+  # if > 0, deletes log files which are older than ... days
+  #logRetentionDays: 7
+
+# optional: DNS listener port and bind ip address, default 53 (UDP and TCP). Example: 53, :53, 127.0.0.1:53
+port: 53
+# optional: Port for DoT (DNS-over-TLS) listener. Example: 853, 127.0.0.1:853
+#tlsPort: 853
+# optional: HTTPS listener port and bind ip address, default empty = no http listener. If > 0, will be used for prometheus metrics, pprof, REST API, DoH... Example: 443, :443, 127.0.0.1:443
+{% if blocky_doh %}
+{% if blocky_behind_proxy %}
+httpPort: 4000
+{% else %}
+httpsPort: 443
+# mandatory, if https port > 0: path to cert and key file for SSL encryption
+certFile: {{blocky_cert_file_path}}
+keyFile: {{blocky_key_file_path}}
+{% endif %}
+{% endif %}
+# optional: use this DNS server to resolve blacklist urls and upstream DNS servers. Useful if no DNS resolver is configured and blocky needs to resolve a host name. Format net:IP:port, net must be udp or tcp
+bootstrapDns: tcp:1.1.1.1
+# optional: Drop all AAAA query if set to true. Default: false
+disableIPv6: false
+# optional: Log level (one from debug, info, warn, error). Default: info
+logLevel: info
+# optional: Log format (text or json). Default: text
+logFormat: text
+# optional: log timestamps. Default: true
+logTimestamp: true
+# optional: obfuscate log output (replace all alphanumeric characters with *) for user sensitive data like request domains or responses to increase privacy. Default: false
+logPrivacy: false

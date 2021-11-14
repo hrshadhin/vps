@@ -1,0 +1,17 @@
+galaxy_info:
+  author: H.R. Shadhin
+  description: Ansible role to install and configure wireguard server.
+  company: ShanixLab
+
+  license: GPL-3.0-or-later
+
+  min_ansible_version: 2.1
+
+  galaxy_tags:
+    - networking
+    - security
+    - linux
+    - vpn
+    - wireguard
+
+dependencies: []

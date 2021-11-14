@@ -1,0 +1,10 @@
+---
+# handlers file for wireguard
+- name: restart ufw
+  service: name=ufw state=restarted
+
+- name: restart wg0
+  systemd:
+    name: "wg-quick@wg0"
+    state: restarted
+    daemon_reload: yes

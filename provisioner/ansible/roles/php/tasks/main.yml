@@ -1,0 +1,37 @@
+---
+# tasks file for php
+- name: Add php ppa:ondrej/php
+  apt_repository:
+    repo: "ppa:ondrej/php"
+    state: present
+
+- name: "Install php{{php_version}}"
+  apt:
+    name: "php{{php_version}}"
+    update_cache: true
+    state: latest
+
+- name: "Install php{{php_version}}-fpm"
+  apt:
+    name: "php{{php_version}}-fpm"
+    state: latest
+  when: php_install_fpm is defined and php_install_fpm
+
+- name: "Restart php{{php_version}}-fpm"
+  service:
+    name: "php{{php_version}}-fpm"
+    state: restarted
+  when: php_install_fpm is defined and php_install_fpm
+
+- name: "Install php extra packages"
+  apt:
+    name: "{{ [prefix] | product(php_extra_packages) | map('join')}}"
+    update_cache: true
+    state: latest
+  vars:
+    prefix: "php{{php_version}}-"
+
+- name: Install composer
+  shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  args:
+    creates: /usr/local/bin/composer

@@ -1,0 +1,11 @@
+---
+# tasks file for websites
+
+- include_tasks: configure_site.yml
+  with_items: "{{static_sites}}"
+  loop_control:
+    loop_var: site
+  when: static_sites | length > 0
+
+- name: Flush all handlers at this point
+  meta: flush_handlers

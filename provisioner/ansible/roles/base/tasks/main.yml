@@ -1,0 +1,85 @@
+---
+# tasks file for base
+- name: Add swap {{swap_space}}
+  include_tasks: swap.yml
+  when: add_swap
+
+- name: Update System Package Cache
+  apt: update_cache=yes cache_valid_time=3600
+
+- name: Update System Packages
+  apt: upgrade=full
+
+- name: Install basic packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - git
+      - jq
+      - curl
+      - zip
+      - unzip
+      - apt-transport-https
+      - ca-certificates
+      - gnupg-agent
+      - software-properties-common
+      - acl
+
+- name: Update Timezone to {{time_zone}}
+  timezone:
+    name: "{{time_zone}}"
+
+- name: Copy motd file
+  template:
+    src: templates/motd.j2
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: 0444
+
+- name: Disable useless motd files
+  file:
+    path: "{{ item }}"
+    state: absent
+    mode: "0644"
+  with_items:
+    - /etc/update-motd.d/00-header
+    - /etc/update-motd.d/10-help-text
+    - /etc/update-motd.d/50-motd-news
+    - /etc/update-motd.d/91-release-upgrade
+    - /etc/update-motd.d/88-esm-announce
+    - /etc/update-motd.d/91-contract-ua-esm-status
+
+- name: Add secondary user
+  include_tasks: add_user.yml
+  when: add_secondary_user
+
+- name: Securing SSH setup
+  include_tasks: ssh.yml
+
+- name: Install fail2ban
+  include_tasks: fail2ban.yml
+  when: install_fail2ban
+
+- name: Install ufw
+  include_tasks: ufw.yml
+  when: install_ufw
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Reboot if needed...
+  command: shutdown -r now removes=/var/run/reboot-required
+  async: 0
+  poll: 0
+  ignore_errors: true
+  no_log: true
+
+- name: Waiting for reboot...
+  become: no
+  wait_for_connection:
+    delay: 5
+    sleep: 5
+    timeout: 120

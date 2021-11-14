@@ -1,0 +1,97 @@
+---
+- name: Add MariaDB repository key
+  apt_key:
+    url: https://mariadb.org/mariadb_release_signing_key.asc
+    state: present
+
+- name: Add official MariaDB {{mariadb_version}} ubuntu {{ ansible_distribution_release }} repository
+  apt_repository:
+    repo: "deb [arch=amd64,arm64] https://dlm.mariadb.com/repo/mariadb-server/{{mariadb_version}}/repo/ubuntu {{ ansible_distribution_release }} main"
+    state: present
+
+- name: Install MariaDB dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - mariadb-server
+    - python3-mysqldb
+
+- name: Start MariaDB Service
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Allow MariaDB to connect remotely
+  lineinfile:
+    path: "/etc/mysql/mysql.conf.d/mysqld.cnf"
+    regexp: "^bind-address(.*)$"
+    line: "#bind-address	= 127.0.0.1"
+  when: mariadb_allow_remote_connection
+  notify:
+    - Restart MariaDB
+
+- name: Update MariaDB root password for all root accounts
+  mysql_user:
+    name: root
+    host: "{{ item }}"
+    password: "{{ mariadb_root_password }}"
+    priv: "*.*:ALL,GRANT"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: Ensure anonymous users are not in the database
+  mysql_user:
+    name: ""
+    host: localhost
+    state: absent
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+
+- name: Remove test database
+  mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+
+- name: Add some databases
+  mysql_db:
+    name: "{{item}}"
+    state: present
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  with_items: "{{mariadb_database_names}}"
+  tags: create-databases
+
+- name: Allow {{mariadb_user}} connections from multiple hosts
+  mysql_user:
+    name: "{{mariadb_user}}"
+    host: "{{ item }}"
+    password: "{{ mariadb_user_password }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  with_items: "{{allowed_hosts|select|list}}"
+  vars:
+    allowed_hosts:
+      - 127.0.0.1
+      - localhost
+      - "{{ (mariadb_allow_remote_connection) | ternary('%','') }}"
+
+- name: Give perssion to {{mariadb_user}} on some databases
+  mysql_user:
+    name: "{{mariadb_user}}"
+    append_privs: true
+    priv: "{{item}}.*:ALL"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  with_items: "{{mariadb_database_names}}"
+  tags: create-databases
+
+- name: Flush all handlers at this point
+  meta: flush_handlers

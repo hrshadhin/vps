@@ -1,0 +1,17 @@
+---
+# defaults file for php
+php_version: 8.0
+php_install_fpm: true
+php_extra_packages:
+  - common
+  - bcmath
+  - bz2
+  - intl
+  - gd
+  - mbstring
+  - mysql
+  - pgsql
+  - zip
+  - curl
+  - ldap
+  - xml

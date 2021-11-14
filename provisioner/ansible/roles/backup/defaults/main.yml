@@ -1,0 +1,34 @@
+---
+# defaults file for backup
+backup_base_dir: "$HOME/backups"
+
+gdrive_binary_install_dir: /usr/local/bin
+gdrive_version: 2.1.1
+gdrive_build_binary: false
+gservice_account_json_base64: set_me
+gservice_account_json_file: backup_gsa.json
+gdrive_app_folder_id: set_me
+gdrive_db_folder_id: set_me
+
+# apps
+app_base_dir: /var/www/html
+app_backup_dir: "{{backup_base_dir}}/app"
+backup_apps: []
+# backup_apps:
+#   - { foobar: ["*"] }
+backup_static_sites: true
+
+# websites
+backup_sites: []
+backup_exclude_sites: []
+
+# DBs
+db_backup_dir: "{{backup_base_dir}}/db"
+app_backup_retentiond_days: 7
+db_backup_retentiond_days: 7
+mariadb_backup_user: setme
+mariadb_backup_user_password: setme
+backup_mariadbs: []
+postgresdb_backup_user: setme
+postgresdb_backup_user_password: setme
+backup_postgresdbs: []

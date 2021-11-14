@@ -1,0 +1,19 @@
+# IDE files
+.vscode
+.DS_Store
+.idea
+
+# Misc
+.env
+env
+.venv
+venv
+
+# Vagrant
+*.log
+**/.vagrant
+
+# Ansible
+*.hash
+**/**/ansible/sshconfig
+**/**/ansible/*.crt

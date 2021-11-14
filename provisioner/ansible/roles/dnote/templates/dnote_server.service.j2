@@ -1,0 +1,40 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description=Starts the dnote server
+Requires=network.target
+After=network.target
+ 
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/html/{{dnote_directory_name}}
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart={{ dnote_binary_install_dir }}/dnote_server --port {{dnote_port}} start
+
+
+Restart=always
+RestartSec=3
+
+# ENV
+Environment=GO_ENV=PRODUCTION
+Environment=OnPremise=true
+Environment=DBHost={{dnote_db_host}}
+Environment=DBPort={{dnote_db_port}}
+Environment=DBName={{dnote_db_name}}
+Environment=DBUser={{dnote_db_user}}
+Environment=DBPassword={{dnote_db_pass}}
+Environment=SmtpHost=
+Environment=SmtpPort=
+Environment=SmtpUsername=
+Environment=SmtpPassword=
+Environment=DisableRegistration={{dnote_disable_registration}}
+{% if is_local is defined and is_local %}
+Environment=WebURL=http://{{dnote_domain_name}}
+{% else %}
+Environment=WebURL=https://{{dnote_domain_name}}
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

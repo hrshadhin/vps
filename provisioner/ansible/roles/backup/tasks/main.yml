@@ -1,0 +1,87 @@
+---
+# tasks file for backup
+- name: Run whoami without become.
+  command: whoami
+  changed_when: false
+  become: false
+  register: whoami
+
+- name: Set variables
+  set_fact:
+    login_user: "{{ whoami.stdout }}"
+
+- name: Ensure backups directory exists
+  become: false
+  file:
+    path: ~/backups
+    owner: "{{login_user}}"
+    group: "{{login_user}}"
+    mode: "0700"
+    state: directory
+    recurse: true
+
+- name: Install gdrive
+  include_tasks: install_gdrive.yml
+  when: true
+
+- name: Ensure scripts directory exists
+  become: false
+  file:
+    path: ~/scripts
+    owner: "{{login_user}}"
+    group: "{{login_user}}"
+    mode: "0700"
+    state: directory
+    recurse: true
+
+- name: Add static sites to the backup_apps
+  set_fact:
+    backup_apps: "{{ backup_apps | combine({item: ['*']}) }}"
+  with_items: "{{ backup_sites }}"
+  when: item not in backup_exclude_sites
+
+- name: Create app backup script
+  become: false
+  template:
+    src: app_backup.sh.j2
+    dest: ~/scripts/app_backup.sh
+    mode: "0700"
+
+- name: Add ~/.my.cnf
+  become: false
+  template:
+    src: my.cnf.j2
+    dest: ~/.my.cnf
+    mode: "0600"
+
+- name: Add ~/.pgpass
+  become: false
+  template:
+    src: pgpass.j2
+    dest: ~/.pgpass
+    mode: "0600"
+
+- name: Create db backup script
+  become: false
+  template:
+    src: db_backup.sh.j2
+    dest: ~/scripts/db_backup.sh
+    mode: "0700"
+
+- name: Ensure app backup job that runs at 3 every sunday exists."
+  become: false
+  cron:
+    name: "backup app"
+    minute: "0"
+    hour: "3"
+    weekday: "0"
+    job: "/home/{{login_user}}/scripts/app_backup.sh > /home/{{login_user}}/app_backup.log"
+
+- name: Ensure db backup job that runs at 2:30 every 3 days interval exists."
+  become: false
+  cron:
+    name: "backup database"
+    minute: "30"
+    hour: "2"
+    day: "*/3"
+    job: "/home/{{login_user}}/scripts/db_backup.sh > /home/{{login_user}}/db_backup.log"

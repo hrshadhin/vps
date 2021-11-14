@@ -1,0 +1,103 @@
+---
+# tasks file for roles/focalboard
+- name: Download focalboard_server archive
+  become: false
+  get_url:
+    url: "https://github.com/mattermost/focalboard/releases/download/v{{focalboard_version}}/focalboard-server-linux-{{ go_arch }}.tar.gz"
+    dest: "/tmp/focalboard-server-linux-{{ go_arch }}.tar.gz"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+
+- name: Unpack focalboard_server archive
+  become: false
+  unarchive:
+    src: "/tmp/focalboard-server-linux-{{ go_arch }}.tar.gz"
+    dest: "/tmp/"
+    creates: "/tmp/focalboard/bin/focalboard-server"
+    remote_src: yes
+  check_mode: false
+
+- name: Copy focalboard web contents
+  copy:
+    src: "/tmp/focalboard/pack/"
+    dest: "/var/www/html/{{focalboard_domain_name}}/pack/"
+    remote_src: yes
+    directory_mode: yes
+
+- name: Propagate official focalboard_server binary
+  copy:
+    src: "/tmp/focalboard/bin/focalboard-server"
+    dest: "{{ focalboard_binary_install_dir }}/focalboard_server"
+    mode: 0755
+    owner: root
+    group: root
+    remote_src: yes
+  notify:
+    - Restart focalboard_server
+
+- name: Copy config file
+  template:
+    src: config.json.j2
+    dest: "/var/www/html/{{focalboard_domain_name}}/config.json"
+    mode: "0644"
+  notify:
+    - Restart focalboard_server
+
+- name: Create focalboard_server systemd service unit
+  template:
+    src: focalboard_server.service.j2
+    dest: /etc/systemd/system/focalboard_server.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart focalboard_server
+
+- name: Create robots.txt
+  copy:
+    content: "User-agent: *\nDisallow: /\n"
+    dest: "/var/www/html/{{focalboard_domain_name}}/robots.txt"
+
+- name: Ensure {{focalboard_domain_name}} directory permission for webserver
+  file:
+    path: /var/www/html/{{focalboard_domain_name}}
+    owner: www-data
+    group: www-data
+    mode: "0755"
+    recurse: yes
+
+- name: Ensure {{focalboard_domain_name}} file exists for nginx
+  template:
+    src: nginx_http.conf.j2
+    dest: /etc/nginx/sites-available/{{focalboard_domain_name}}
+    mode: "0644"
+  vars:
+    domain_name: "{{focalboard_domain_name}}"
+
+- name: Enable {{focalboard_domain_name}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{focalboard_domain_name}}
+    dest: /etc/nginx/sites-enabled/{{focalboard_domain_name}}
+    state: link
+  notify: Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{focalboard_domain_name}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ focalboard_domain_name }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: is_local is defined and not is_local
+
+- name: Copy {{focalboard_domain_name}} https nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{focalboard_domain_name}}
+    mode: "0644"
+  vars:
+    domain_name: "{{focalboard_domain_name}}"
+  notify:
+    - Restart nginx
+  when: is_local is defined and not is_local

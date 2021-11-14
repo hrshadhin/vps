@@ -1,0 +1,19 @@
+---
+- name: Generate User Password file
+  shell: python files/password_hasher.py {{ secondary_user_password }} > {{ user_passfile }}
+  args:
+    chdir: "{{role_path}}"
+    creates: "{{ user_passfile }}"
+  delegate_to: localhost
+  become: no
+
+- name: Ensure User {{secondary_user_username}} is Present
+  user: name={{secondary_user_username}} password={{ lookup('file', user_passfile) }} group=sudo shell="/bin/bash" state=present
+
+- name: Add User to SUDOERS
+  copy:
+    dest: "/etc/sudoers.d/{{secondary_user_username}}"
+    content: "{{secondary_user_username}} ALL=(ALL) NOPASSWD:ALL"
+
+- name: Deploy SSH Key
+  authorized_key: user={{secondary_user_username}} key="{{ lookup('file', ssh_pub_key_path) }}" state=present

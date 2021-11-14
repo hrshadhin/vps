@@ -1,0 +1,16 @@
+---
+- name: Remove Root SSH Configuration
+  file: path=/root/.ssh state=absent
+
+- name: Copy Secured SSHD Configuration
+  template:
+    src: templates/sshd_config_secured.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0644
+  register: ssh_config
+
+- name: Restart SSH
+  service: name=ssh state=restarted
+  when: ssh_config.changed

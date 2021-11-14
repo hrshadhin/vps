@@ -1,0 +1,13 @@
+---
+# handlers file for monica
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Restart monica
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: monica
+    state: restarted

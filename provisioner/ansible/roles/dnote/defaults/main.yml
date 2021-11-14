@@ -1,0 +1,13 @@
+---
+# defaults file for dnote
+dnote_version: 1.0.4
+dnote_domain_name: example.com
+dnote_directory_name: "{{dnote_domain_name}}"
+dnote_binary_install_dir: /usr/local/bin
+dnote_port: 3002
+dnote_db_host: localhost
+dnote_db_port: 5432
+dnote_db_user: setme
+dnote_db_pass: setme
+dnote_db_name: dnote
+dnote_disable_registration: "true"

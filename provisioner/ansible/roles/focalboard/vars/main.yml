@@ -1,0 +1,11 @@
+---
+# vars file for roles/focalboard
+go_arch_map:
+  i386: "386"
+  x86_64: "amd64"
+  aarch64: "arm64"
+  armv7l: "armv7"
+  armv6l: "armv6"
+
+go_arch: "{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+focalboard_web_url: "{{ 'http' if is_local is defined and is_local else 'https' }}://{{focalboard_domain_name}}"

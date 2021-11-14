@@ -1,0 +1,26 @@
+---
+# defaults file for monica
+monica_version: 3.5.0
+
+monica_db_host: 127.0.0.1
+monica_db_port: 3306
+monica_db_user: setme
+monica_db_password: setme
+monica_db_name: monica
+
+monica_smtp_host: setme
+monica_smtp_port: 465
+monica_smtp_from: setme
+monica_smtp_username: setme
+monica_smtp_password: setme
+monica_smtp_encryption: "tls"
+
+monica_app_name: Monica
+monica_domain: "localhost:8000"
+monica_app_url: "{{ 'http' if is_local is defined and is_local else 'https' }}://{{monica_domain}}"
+monica_app_key: something_every_storng_key_here
+monica_hash_salt: change_me+key_length
+monica_hash_length: 18
+monica_disable_signup: "true"
+monica_mfa_enabled: "true"
+monica_dav_enabled: "false"

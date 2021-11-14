@@ -1,0 +1,79 @@
+---
+# tasks file for blocky
+- name: Run whoami without become.
+  command: whoami
+  changed_when: false
+  become: false
+  register: whoami
+
+- name: Set variables
+  set_fact:
+    login_user: "{{ whoami.stdout }}"
+
+- name: Ensure blocky directory exists
+  file:
+    path: "{{blocky_install_path}}"
+    owner: "{{login_user}}"
+    group: "{{login_user}}"
+    mode: "0700"
+    state: directory
+    recurse: true
+
+- name: Copy config.yml
+  template:
+    src: config.yml.j2
+    dest: "{{blocky_install_path}}/config.yml"
+
+- name: Copy docker-compose.yaml
+  template:
+    src: docker-compose.yaml.j2
+    dest: "{{blocky_install_path}}/docker-compose.yaml"
+
+- name: Stop systemd-resolved
+  service:
+    name: systemd-resolved
+    state: stopped
+
+- name: Disable systemd-resolved
+  systemd:
+    daemon_reload: true
+    enabled: false
+    name: systemd-resolved
+    state: stopped
+
+- name: Create and start blocky services
+  docker_compose:
+    project_src: "{{blocky_install_path}}"
+
+- block:
+    - name: Ensure {{blocky_doh_domain}} file exists for nginx
+      template:
+        src: nginx_http.conf.j2
+        dest: /etc/nginx/sites-available/{{blocky_doh_domain}}
+        mode: "0644"
+
+    - name: Enable {{blocky_doh_domain}} nginx config
+      file:
+        src: /etc/nginx/sites-available/{{blocky_doh_domain}}
+        dest: /etc/nginx/sites-enabled/{{blocky_doh_domain}}
+        state: link
+      notify: Restart nginx
+  when: blocky_doh
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- block:
+    - name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{blocky_doh_domain}}
+      command: "certbot --{{ certbot_plugin }} -d  {{ blocky_doh_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+      when: is_local is defined and not is_local
+
+    - name: Copy nginx config
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/sites-available/{{blocky_doh_domain}}
+        mode: "0644"
+      when: is_local is defined and not is_local
+      notify:
+        - Restart nginx
+  when: blocky_doh

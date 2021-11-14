@@ -1,0 +1,83 @@
+#!/bin/bash
+
+{{ ansible_managed | comment }}
+
+# Bail out if there are any errors.
+set -e
+
+#########################
+#    Configurations     #
+#########################
+# app base dir
+app_base_dir="{{app_base_dir}}"
+
+# The local directory where we'll be storing archive
+app_backup_dir="{{app_backup_dir}}"
+backup_dir="$(date +'%Y-%m-%d')"
+full_backup_path="$app_backup_dir/$backup_dir"
+
+# The Google Drive folder ID where files need to be upload
+gdrive_folder_id="{{gdrive_app_folder_id}}"
+
+# Google Service Account Json
+gsaj="{{gservice_account_json_file}}"
+
+# Number of days we want to retain local backups for
+retentiondays={{app_backup_retentiond_days}}
+
+#########################
+#   Helper Functions    #
+#########################
+
+archive_app_data () {
+  local -n apps_dict=$1
+  for app_name in "${!apps_dict[@]}";
+    do
+      f_and_d="${apps_dict[$app_name]}"
+      echo "archiving ---> $app_name"
+      
+      if [[ "$f_and_d" == "*" ]]; then
+        tar -C $app_base_dir -czf "$full_backup_path/$app_name.tar.gz" $app_name
+      else
+        tar -C "$app_base_dir/$app_name"  --transform "s,^,$app_name/," -czf "$full_backup_path/$app_name.tar.gz" $f_and_d
+      fi
+    done
+}
+
+upload_to_gdrive () {
+  /usr/local/bin/gdrive --service-account $gsaj  upload --parent $gdrive_folder_id $1
+}
+
+
+#########################
+# Do pre-process tasks  #
+#########################
+
+# Make sure the directory exists
+mkdir -p $full_backup_path
+
+# Delete old archive files
+find $app_backup_dir -type f -name "*.tar.gz" -mtime +"$retentiondays" -print -exec rm "{}" \;
+
+
+##########################
+# Start Archive & Upload #
+##########################
+declare -A apps
+{% for app, items in backup_apps.items() %}
+apps["{{app}}"]="{{ items | join(" ") }}"
+{% endfor %}
+
+archive_app_data apps
+
+# archive all backups
+final_arc_file="$app_backup_dir/$(date +'%Y-%m-%d_%H_%M_%S').tar.gz" 
+tar -C $app_backup_dir -czvf $final_arc_file $backup_dir
+
+# clean backup dir
+rm -rf $full_backup_path
+
+# upload to gdrive
+upload_to_gdrive $final_arc_file
+
+echo "<= Done! =>"

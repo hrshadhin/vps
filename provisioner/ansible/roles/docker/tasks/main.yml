@@ -1,0 +1,83 @@
+---
+- name: Add Docker CE GPG
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker CE repo
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+    filename: docker
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install Docker & relevant packages
+  apt:
+    state: present
+    pkg:
+      - "docker-ce"
+      - "docker-ce-cli"
+      - "containerd.io"
+      - "python3-pip"
+      - "python3-docker"
+
+- name: Enable and start Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Run whoami without become.
+  command: whoami
+  changed_when: false
+  become: false
+  register: whoami
+
+- name: Set a fact with the user name.
+  set_fact:
+    login_user: "{{ whoami.stdout }}"
+
+- name: Allow {{ login_user }} access to Docker socket
+  user:
+    name: "{{ login_user }}"
+    groups: docker
+    append: yes
+  when: login_user is defined
+
+- name: Allow aditional user(s) to access Docker socket
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  with_items: "{{ docker_extra_users }}"
+  when: docker_extra_users | length > 0
+
+- name: Ensure docker_insecure_registry exists
+  file:
+    path: "{{ docker_insecure_registry }}"
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+  when: enable_insecure_registry
+
+- name: Install docker compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+    dest: /usr/local/bin/docker-compose
+    owner: root
+    group: root
+    mode: "0755"
+  when: install_docker_compose
+
+- name: Install docker-compose python package
+  pip:
+    name: docker-compose
+  when: install_docker_compose
+
+- name: Reset ssh connection to allow user changes to take affect
+  meta: reset_connection

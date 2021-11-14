@@ -1,0 +1,24 @@
+# tasks file for wireguard
+---
+- include_tasks: install.yml
+  tags: wg-install
+
+- include_tasks: generate_keys.yml
+
+- include_tasks: users.yml
+  tags: wg-config
+
+- include_tasks: configure.yml
+  tags: wg-config
+
+- name: Fetch Wireguard user configs
+  fetch:
+    src: "{{ wg_conf_dir }}/{{ item.value.username }}/wg0.conf"
+    dest: "{{ wg_download_dir  }}"
+  with_dict: "{{ wg_user_list }}"
+  loop_control:
+    label: "{{ item.value.username }}"
+  when: (item.value.remove == False)
+  tags:
+    - wg-config
+    - wg-dl-config

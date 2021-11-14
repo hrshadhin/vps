@@ -1,0 +1,75 @@
+server {
+	if ($host = {{vaultwarden_domain}}) {
+		return 301 https://$host$request_uri;
+	}
+
+	listen 80;
+	server_name {{vaultwarden_domain}};
+	return 404;
+}
+
+upstream vwbackend {
+	server	127.0.0.1:8920;
+}
+
+upstream vwsbackend {
+	server	127.0.0.1:30122;
+}
+
+server {
+	##
+	# Basic Settings
+	#
+	listen 443 ssl http2;
+	server_name {{vaultwarden_domain}};
+
+	root /var/www/html/{{vaultwarden_domain}};
+	index index.html;
+
+	include /etc/nginx/snippets/headers.conf;	
+	include /etc/nginx/snippets/cloud-flare-ips.conf;
+
+	##
+	# SSL Settings
+	##
+	ssl_certificate /etc/letsencrypt/live/{{vaultwarden_domain}}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{vaultwarden_domain}}/privkey.pem;
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+	##
+	# Path & Error Settings
+	##
+	location / {
+		proxy_pass http://vwbackend;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+
+	location /notifications/hub {
+		proxy_pass http://vwsbackend;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "upgrade";
+	}
+	  
+	location /notifications/hub/negotiate {
+		proxy_pass http://vwbackend;
+	}
+	
+	##
+	# Logging Settings
+	##
+	access_log  /var/log/nginx/{{vaultwarden_domain}}_access.log;
+	error_log   /var/log/nginx/{{vaultwarden_domain}}_error.log;	
+	
+	location  /robots.txt {
+		access_log off;
+	}
+	
+	location ~ /favicon.png {
+		access_log off;
+	}
+	
+}

@@ -1,0 +1,14 @@
+#jinja2: lstrip_blocks:"True",trim_blocks:"True"
+
+# {{ ansible_managed }}
+
+[Interface]
+PrivateKey = {{ item['content'] | b64decode | replace('\n', '')}}
+Address = {{ item.item.value.private_ip }}/32
+DNS = {{ wg_private_ip }}
+
+[Peer]
+PublicKey = {{ wg_publickey['content'] | b64decode | replace('\n', '')}}
+Endpoint = {{ wg_server_public_ip }}:{{ wg_listen_port }}
+AllowedIPs = {{ wg_allowed_ips }}
+PersistentKeepalive = 20

@@ -1,0 +1,29 @@
+galaxy_info:
+  author: H.R. Shadhin
+  description: zsh, oh-my-zsh with cloud theme, fzf and other plugins
+  company: ShanixLab
+
+  license: GPL-3.0-or-later
+
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+
+  galaxy_tags:
+    - shell
+    - zsh
+    - oh-my-zsh
+
+dependencies: []

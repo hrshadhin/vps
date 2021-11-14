@@ -1,0 +1,22 @@
+galaxy_info:
+  author: H.R. Shadhin
+  description: A set of tasks that need to be run after VM first start. Like system updates, user add, securing the VM.
+  company: ShanixLab
+
+  license: GPL-3.0-or-later
+
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+
+  galaxy_tags:
+    - basic setup
+    - securing vm
+
+dependencies: []

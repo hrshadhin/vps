@@ -1,0 +1,10 @@
+---
+# defaults file for nginx
+setup_ssl: false
+is_local: false
+primary_domain: example.com
+certbot_packages:
+  - certbot
+  - python3-certbot-nginx
+certbot_plugin: nginx
+certbot_mail_address: devops@example.com

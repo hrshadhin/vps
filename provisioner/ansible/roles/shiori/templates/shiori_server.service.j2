@@ -1,0 +1,43 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description=Shiori Bookmarks Server
+After=network-online.target
+Requires=network.target
+After=network.target
+ 
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/html/{{shiori_directory_name}}
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart={{ shiori_binary_install_dir }}/shiori_server serve -p {{shiori_port}}
+
+
+Restart=always
+RestartSec=3
+SyslogIdentifier=shiori_server
+
+# ENV
+Environment=SHIORI_DIR=/var/www/html/{{shiori_directory_name}}
+
+{% if shiori_dbms == 'mysql' %}
+Environment=SHIORI_DBMS=mysql
+Environment=SHIORI_MYSQL_ADDRESS=tcp({{shiori_db_host}}:{{shiori_db_port}})
+Environment=SHIORI_MYSQL_USER={{shiori_db_user}}
+Environment=SHIORI_MYSQL_PASS={{shiori_db_pass}}
+Environment=SHIORI_MYSQL_NAME={{shiori_db_name}}
+{% endif %}
+
+{% if shiori_dbms == 'postgresql' %}
+Environment=SHIORI_DBMS=postgresql
+Environment=SHIORI_PG_HOST={{shiori_db_host}}
+Environment=SHIORI_PG_PORT={{shiori_db_port}}
+Environment=SHIORI_PG_USER={{shiori_db_user}}
+Environment=SHIORI_PG_PASS={{shiori_db_pass}}
+Environment=SHIORI_PG_NAME={{shiori_db_name}}
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

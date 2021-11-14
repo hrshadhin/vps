@@ -1,0 +1,13 @@
+---
+# handlers file for roles/focalboard
+- name: Restart focalboard_server
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: focalboard_server
+    state: restarted
+
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted

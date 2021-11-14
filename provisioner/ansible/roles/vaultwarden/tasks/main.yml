@@ -1,0 +1,71 @@
+---
+# tasks file for vaultwarden
+- name: Copy .env file
+  template:
+    src: .env.j2
+    dest: "/var/www/html/{{vaultwarden_domain}}/.env"
+    mode: "0644"
+
+- name: Create robots.txt
+  copy:
+    content: "User-agent: *\nDisallow: /\n"
+    dest: "/var/www/html/{{vaultwarden_domain}}/robots.txt"
+
+- name: "Copy docker-compose"
+  template:
+    src: docker-compose.yaml.j2
+    dest: "/var/www/html/{{vaultwarden_domain}}/docker-compose.yaml"
+    mode: "0644"
+  notify:
+    - Restart vaultwarden
+
+# - name: "Tear down existing services"
+#   docker_compose:
+#     project_src: "/var/www/html/{{vaultwarden_domain}}"
+#     state: absent
+
+# - name: "Create and start vaultwarden services"
+#   docker_compose:
+#     project_src: "/var/www/html/{{vaultwarden_domain}}"
+
+- name: Ensure {{vaultwarden_domain}} file exists for nginx
+  template:
+    src: nginx_http.conf.j2
+    dest: /etc/nginx/sites-available/{{vaultwarden_domain}}
+    mode: "0644"
+
+- name: Enable {{vaultwarden_domain}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{vaultwarden_domain}}
+    dest: /etc/nginx/sites-enabled/{{vaultwarden_domain}}
+    state: link
+  notify: Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{vaultwarden_domain}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ vaultwarden_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: is_local is defined and not is_local
+
+- name: Copy nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{vaultwarden_domain}}
+    mode: "0644"
+  when: is_local is defined and not is_local
+  notify:
+    - Restart nginx
+
+- name: Create vaultwarden systemd service unit
+  template:
+    src: vaultwarden.service.j2
+    dest: /etc/systemd/system/vaultwarden.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart vaultwarden
+
+- name: Flush all handlers at this point
+  meta: flush_handlers

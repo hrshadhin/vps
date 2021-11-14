@@ -1,0 +1,5 @@
+---
+# defaults file for redis
+redis_port: 6379
+redis_bind_interface: 127.0.0.1
+redis_databases: 16

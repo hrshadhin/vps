@@ -1,0 +1,23 @@
+---
+# defaults file for roles/focalboard
+focalboard_version: 0.10.0
+focalboard_domain_name: example.com
+focalboard_binary_install_dir: /usr/local/bin
+focalboard_port: 3003
+focalboard_db_type: postgres
+focalboard_db_host: localhost
+focalboard_db_port: 5432
+focalboard_db_user: setme
+focalboard_db_pass: setme
+focalboard_db_name: focalboard
+focaboard_db_sslmode: disable
+focalboard_db_connection_timeout: 10
+focalboard_useSSL: "false"
+focalboard_webpath: ./pack
+focalboard_filespath: ./files
+focalboard_telemetry: "false"
+focalboard_session_expire_time: 2592000
+focalboard_session_refresh_time: 18000
+focalboard_localOnly: "false"
+focalboard_enableLocalMode: "false"
+focalboard_localModeSocketLocation: /var/tmp/focalboard_local.socket

@@ -1,0 +1,10 @@
+---
+# defaults file for wireguard
+wg_conf_dir: /etc/wireguard
+wg_private_ip: 10.8.0.0
+wg_listen_port: 51820
+wg_server_public_ip:
+wg_allowed_ips: "0.0.0.0/0"
+wg_download_dir: ~/wg-confs
+wg_user_list:
+  user_1: { username: "user_1", private_ip: "10.8.0.11", remove: no }

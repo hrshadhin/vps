@@ -1,0 +1,39 @@
+---
+# tasks file for nginx
+- name: Install nginx
+  apt:
+    name: nginx
+    update_cache: yes
+    state: present
+
+- name: Install Let's Encrypt Package
+  apt:
+    name: "{{ certbot_packages }}"
+    update_cache: yes
+    state: latest
+  when: setup_ssl
+
+- name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{primary_domain}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ primary_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: setup_ssl
+
+- name: Copy nginx snippets
+  copy:
+    src: "snippets/{{ item }}"
+    dest: "/etc/nginx/snippets/{{ item }}"
+    mode: "0644"
+  with_items:
+    - maps.conf
+    - headers.conf
+    - cloud-flare-ips.conf
+
+- name: Configure nginx
+  template:
+    src: default.conf.j2
+    dest: /etc/nginx/sites-available/default
+    mode: "0644"
+  notify:
+    - Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers

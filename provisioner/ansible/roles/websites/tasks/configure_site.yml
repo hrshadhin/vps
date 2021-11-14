@@ -1,0 +1,36 @@
+---
+- name: Ensure {{site}} directory permission for webserver
+  file:
+    path: /var/www/html/{{site}}
+    owner: www-data
+    group: www-data
+    mode: "0755"
+    recurse: yes
+
+- name: Ensure {{site}} file exists for nginx
+  template:
+    src: nginx_http.conf.j2
+    dest: /etc/nginx/sites-available/{{site}}
+    mode: "0644"
+  vars:
+    domain_name: "{{site}}"
+
+- name: Enable {{site}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{site}}
+    dest: /etc/nginx/sites-enabled/{{site}}
+    state: link
+  notify: Restart nginx
+
+- name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{site}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ site }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+
+- name: Copy {{site}} https nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{site}}
+    mode: "0644"
+  vars:
+    domain_name: "{{site}}"
+  notify:
+    - Restart nginx

@@ -1,0 +1,14 @@
+---
+- name: Reset antigen cache
+  command: "/bin/zsh -c 'source {{ zsh_config }}; antigen reset'"
+  become: yes
+  become_user: "{{ zsh_user }}"
+  changed_when: false
+  failed_when: false
+
+- name: Update antigen bundles
+  command: "/bin/zsh -c 'source {{ zsh_config }}; antigen update'"
+  become: yes
+  become_user: "{{ zsh_user }}"
+  changed_when: false
+  failed_when: false

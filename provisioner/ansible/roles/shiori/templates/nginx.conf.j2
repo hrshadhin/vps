@@ -1,0 +1,76 @@
+include /etc/nginx/snippets/maps.conf;
+
+upstream shioribackend {
+	server	127.0.0.1:{{shiori_port}};
+}
+
+server {
+	if ($host = {{domain_name}}) {
+		return 301 https://$host$request_uri;
+	}
+	
+	listen 80;
+	server_name {{domain_name}};
+	return 404;
+}
+
+server {
+	##
+	# Basic Settings
+	#
+	listen 443 ssl;
+	server_name {{domain_name}};
+
+	root /var/www/html/{{domain_name}};
+	index index.html;
+
+	charset utf-8;
+	expires $expires;
+	include /etc/nginx/snippets/headers.conf;	
+	include /etc/nginx/snippets/cloud-flare-ips.conf;
+
+	##
+	# SSL Settings
+	##
+	ssl_certificate /etc/letsencrypt/live/{{domain_name}}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{domain_name}}/privkey.pem;
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+	##
+	# Path & Error Settings
+	##
+	location / {
+		proxy_pass http://shioribackend;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+
+	error_page 404 /404.html;
+	location  /404.html {
+		internal;
+	}
+	
+	##
+	# Logging Settings
+	##
+	access_log  /var/log/nginx/{{domain_name}}_access.log;
+	error_log   /var/log/nginx/{{domain_name}}_error.log;	
+	
+	location  /robots.txt {
+		access_log off;
+	}
+	
+	location ~ /favicon.png {
+		access_log off;
+	}
+	
+
+	##
+	# Gzip Settings
+	##
+	gzip on;
+	gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+}

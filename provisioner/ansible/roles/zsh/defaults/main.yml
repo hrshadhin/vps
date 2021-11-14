@@ -1,0 +1,31 @@
+---
+# defaults file for zsh
+# .zshrc config
+zsh_hist_stamps: yyyy-mm-dd
+zsh_update_interval: 30 # set 0 for disable autoupdates
+zsh_editor: vim
+zsh_term: xterm-256color
+
+zsh_path:
+  - "{{ zsh_fzf_path }}"
+
+zsh_antigen_version: v2.2.3
+zsh_fzf_version: 0.28.0
+
+zsh_antigen_bundles:
+  - git
+
+zsh_antigen_theme: "cloud"
+
+zsh_aliases:
+  - { alias: "py", action: "python3" }
+
+# zsh-autosuggestions
+zsh_autosuggestions_max_length: 15
+
+# fzf
+zsh_fzf_path: "$HOME/bin"
+zsh_fzf_height: "100%"
+zsh_fzf_reverse: yes
+zsh_fzf_border: no
+zsh_fzf_ctrl_r_opts: "--exact"

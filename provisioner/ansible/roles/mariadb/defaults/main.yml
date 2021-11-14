@@ -1,0 +1,7 @@
+---
+# defaults file for mariadb
+mariadb_version: 10.6
+mariadb_allow_remote_connection: false
+mariadb_root_password: toor
+mariadb_user: foobar
+mariadb_user_password: foobar

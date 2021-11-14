@@ -1,0 +1,27 @@
+---
+- name: Update aptitude
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    autoclean: yes
+    autoremove: yes
+  tags: install
+
+- name: Install wireguard
+  apt:
+    name: wireguard
+    state: present
+  tags: install
+
+- name: Update SystemCtl Settings
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: yes
+  tags: install
+
+- name: Configure ufw rules
+  ufw: "rule=allow port={{ wg_listen_port }} proto=udp src=any"
+  notify:
+    - restart ufw

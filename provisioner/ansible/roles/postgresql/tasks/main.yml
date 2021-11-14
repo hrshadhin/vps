@@ -1,0 +1,86 @@
+---
+- name: Ensure OpenSSl, and libssl are the latest versions
+  apt:
+    name: "{{ packages }}"
+    update_cache: true
+    state: latest
+  vars:
+    packages:
+      - openssl
+      - libssl-dev
+      - libssl-doc
+  tags: packages
+
+- name: Configure the PostgreSQL APT key
+  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+  tags: packages
+
+- name: Configure the PostgreSQL APT repositories
+  apt_repository:
+    repo="deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release}}-pgdg main"
+    state=present
+  tags: packages
+
+- name: Install PostgreSQL
+  apt:
+    name: "{{ packages }}"
+    update_cache: true
+    state: present
+  vars:
+    packages:
+      - postgresql-{{ pg_version }}={{ pg_package_version }}
+      - postgresql-server-dev-{{ pg_version }}={{ pg_package_version }}
+      - libpq-dev
+      - python3-psycopg2
+  tags: packages
+
+- name: Ensure the PostgreSQL service is running
+  service: name=postgresql state=started enabled=yes
+
+- name: Copy custom postgresql systemd service script
+  copy:
+    src: postgresql@.service
+    dest: /etc/systemd/system/postgresql@.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload PostgreSQL
+
+- name: Configure PostgreSQL host-based authentication
+  template: src=pg_hba.conf.j2 dest=/etc/postgresql/{{ pg_version }}/main/pg_hba.conf
+  notify:
+    - Restart PostgreSQL
+
+- name: Configure PostgreSQL
+  template: src=postgresql.conf.j2 dest=/etc/postgresql/{{ pg_version }}/main/postgresql.conf
+  notify:
+    - Restart PostgreSQL
+
+- name: Create postgres user
+  become_user: postgres
+  postgresql_user:
+    name: "{{ pg_user }}"
+    password: "{{ pg_user_password }}"
+    state: present
+
+- name: Create some databases
+  become_user: postgres
+  postgresql_db: "name={{ item }} encoding='UTF-8' state=present"
+  with_items: "{{pg_database_names}}"
+  when: pg_database_names is defined
+  tags: create-databases
+
+- name: Give permission to {{pg_user}} for databases
+  become_user: postgres
+  postgresql_privs:
+    db: "{{ item }}"
+    role: "{{ pg_user }}"
+    objs: ALL_IN_SCHEMA
+    privs: ALL
+  with_items: "{{pg_database_names}}"
+  when: pg_database_names is defined
+  tags: create-databases
+
+- name: Flush all handlers at this point
+  meta: flush_handlers

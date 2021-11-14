@@ -1,0 +1,13 @@
+---
+# defaults file for postgresql
+pg_version: "14"
+pg_package_version: "14.*"
+pg_listen_addresses: localhost
+pg_port: 5432
+pg_data_directory: /var/lib/postgresql/{{ pg_version }}/main
+pg_max_connections: 100
+pg_shared_buffers: "128MB"
+pg_work_mem: "4MB"
+pg_log_autovacuum_min_duration: -1
+pg_log_min_duration_statement: -1
+pg_hba_mapping: []

@@ -1,0 +1,10 @@
+---
+- name: Restart PostgreSQL
+  service: name=postgresql state=restarted
+
+- name: Reload PostgreSQL
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: postgresql
+    state: restarted
