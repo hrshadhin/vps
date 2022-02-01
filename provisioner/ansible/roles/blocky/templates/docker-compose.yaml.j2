@@ -8,11 +8,15 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-{% if blocky_doh %}
+{% if blocky_http_enable %}
 {% if blocky_behind_proxy %}
       - "127.0.0.1:{{blocky_http_port}}:4000"
 {% else %}
+{% if blocky_doh %}
       - "443:443"
+{% else %}
+      - "{{blocky_http_port}}:4000"
+{% endif %}
 {% endif %}
 {% endif %}
     environment:

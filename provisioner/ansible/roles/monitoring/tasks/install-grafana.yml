@@ -1,0 +1,91 @@
+---
+- name: Install Grafana dependencies
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: Ensure Grafana apt key is present
+  apt_key:
+    url: "https://packages.grafana.com/gpg.key"
+    state: present
+
+- name: Ensure Grafana apt repository is present
+  apt_repository:
+    repo: "deb https://packages.grafana.com/oss/deb stable main"
+    state: present
+
+- name: Ensure Grafana is installed
+  apt:
+    name: grafana
+    state: present
+
+- name: Copy provisioning files
+  template:
+    src: "{{ item }}"
+    dest: "/etc/{{ item }}"
+    owner: "root"
+    group: "grafana"
+    mode: "0640"
+  notify: restart grafana
+  with_items:
+    - grafana/provisioning/datasources/all.yml
+    - grafana/provisioning/dashboards/all.yml
+
+- name: Copy dashboards
+  copy:
+    src: "grafana/dashboards"
+    dest: "/var/lib/grafana/"
+    owner: "grafana"
+    group: "grafana"
+    mode: "0640"
+  notify: restart grafana
+
+- name: Start grafana Service
+  service:
+    name: grafana-server
+    state: started
+    enabled: yes
+
+- name: Fix systemd issue for ubuntu 18.04
+  replace:
+    path: /usr/lib/systemd/system/grafana-server.service
+    regexp: "^SystemCallFilter=@system-service"
+    replace: "#SystemCallFilter=@system-service"
+  notify:
+    - reload systemd
+    - restart grafana
+  tags: fix-systemd
+  when: grafan_fix_systemd
+
+- name: Copy grafana main config file
+  template:
+    src: grafana/grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: "root"
+    group: "grafana"
+    mode: "0640"
+  notify: restart grafana
+  with_items:
+    - grafana.ini
+
+- name: Ensure {{grafana_domain}} file exists for nginx
+  template:
+    src: grafana/nginx.conf.j2
+    dest: "/etc/nginx/sites-available/{{grafana_domain}}"
+    mode: "0644"
+  when: grafan_setup_domain
+
+- name: "Enable {{grafana_domain}} nginx config"
+  file:
+    src: /etc/nginx/sites-available/{{grafana_domain}}
+    dest: /etc/nginx/sites-enabled/{{grafana_domain}}
+    state: link
+  notify: restart nginx
+  when: grafan_setup_domain
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{grafana_domain}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ grafana_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: not is_local and grafan_setup_domain

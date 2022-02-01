@@ -1,0 +1,14 @@
+---
+#
+# file: files/alert.rules
+#
+# Prometheus recording rules
+# @see https://prometheus.io/docs/prometheus/latest/configuration/recording_rules
+#
+
+groups:
+  - name: my-alerts
+    rules:
+      - alert: NodeExporterDown
+        expr: up{job="node"} == 0
+        for: 1m

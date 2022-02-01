@@ -1,0 +1,74 @@
+---
+- name: create node_exporter system group
+  group:
+    name: node_exporter
+    system: true
+    state: present
+
+- name: create node_exporter system user
+  user:
+    name: node_exporter
+    system: true
+    shell: "/bin/false"
+    group: node_exporter
+    createhome: false
+
+- block:
+    - name: "Get node_exporter checksum list"
+      set_fact:
+        __node_exporter_checksums: "{{ lookup('url', 'https://github.com/prometheus/node_exporter/releases/download/v' + node_exporter_version + '/sha256sums.txt', wantlist=True) | list }}"
+      run_once: true
+
+    - name: "Get node_exporter checksum for {{ go_arch }} architecture"
+      set_fact:
+        __node_exporter_checksum: "{{ item.split(' ')[0] }}"
+      with_items: "{{ __node_exporter_checksums }}"
+      when:
+        - "('linux-' + go_arch + '.tar.gz') in item"
+  delegate_to: localhost
+  when: monitoring_download_binary
+
+- name: download node_exporter binary to local folder
+  become: false
+  get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ go_arch }}.tar.gz"
+    dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ go_arch }}.tar.gz"
+    checksum: "sha256:{{ __node_exporter_checksum }}"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  delegate_to: localhost
+  check_mode: false
+  when: monitoring_download_binary
+
+- name: unpack node_exporter binary
+  become: false
+  unarchive:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ go_arch }}.tar.gz"
+    dest: "/tmp"
+    creates: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ go_arch }}/node_exporter"
+  delegate_to: localhost
+  check_mode: false
+  when: monitoring_download_binary
+
+- name: propagate official node_exporter binary
+  copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ go_arch }}/node_exporter"
+    dest: "{{ _prometheus_binary_install_dir }}/node_exporter"
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - restart node_exporter
+  when: monitoring_download_binary
+
+- name: create node_exporter systemd service unit
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart node_exporter

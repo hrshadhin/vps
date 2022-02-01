@@ -1,0 +1,13 @@
+---
+#
+# file: files/record.rules
+#
+# Prometheus recording rules
+# @see https://prometheus.io/docs/prometheus/latest/configuration/recording_rules
+#
+
+groups:
+  - name: my-records
+    rules:
+      - record: job:node_cpu_seconds:avg_idle
+        expr: avg without(cpu)(rate(node_cpu_seconds_total{mode="idle"}[5m]))

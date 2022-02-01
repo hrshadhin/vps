@@ -1,0 +1,72 @@
+{% if not is_local %}
+server {
+	if ($host = {{grafana_domain}}) {
+		return 301 https://$host$request_uri;
+	}
+
+	listen 80;
+	server_name {{grafana_domain}};
+	return 404;
+}
+{% endif %}
+
+upstream grafana {
+	server	127.0.0.1:9091;
+}
+
+server {
+	##
+	# Basic Settings
+	#
+	server_name {{grafana_domain}};
+
+{% if is_local %}
+	listen 80;
+
+{% else %}
+	listen 443 ssl;
+
+	include /etc/nginx/snippets/headers.conf;	
+	include /etc/nginx/snippets/cloud-flare-ips.conf;
+
+	##
+	# SSL Settings
+	##
+	ssl_certificate /etc/letsencrypt/live/{{grafana_domain}}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{grafana_domain}}/privkey.pem;
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+{% endif %}
+	##
+	# Path & Error Settings
+	##
+	location / {
+		proxy_pass http://grafana;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+
+	error_page 404 /404.html;
+	location  /404.html {
+		internal;
+	}
+	
+	
+	##
+	# Logging Settings
+	##
+	access_log  /var/log/nginx/{{grafana_domain}}_access.log;
+	error_log   /var/log/nginx/{{grafana_domain}}_error.log;	
+	
+	location  /robots.txt {
+		access_log off;
+	}
+	
+	location ~ /favicon.png {
+		access_log off;
+	}
+
+}

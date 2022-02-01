@@ -1,0 +1,20 @@
+---
+- name: install Prometheus
+  include_tasks: install-prometheus.yml
+  when: "'prometheus' in monitoring_components"
+
+- name: install alert manager
+  include_tasks: install-alert-manager.yml
+  when: "'alert_manager' in monitoring_components"
+
+- name: install Grafana
+  include_tasks: install-grafana.yml
+  when: "'grafana' in monitoring_components"
+
+- name: install node_exporter
+  include_tasks: install-node-exporter.yml
+  when: "'node_exporter' in monitoring_components"
+
+- name: install fail2ban_exporter
+  include_tasks: install-fail2ban-exporter.yml
+  when: "'fail2ban_exporter' in monitoring_components"

@@ -1,0 +1,39 @@
+---
+- block:
+    - name: Clone fail2ban_exporter source code
+      delegate_to: localhost
+      become: false
+      git:
+        repo: https://gitlab.com/hectorjsmith/fail2ban-prometheus-exporter.git
+        dest: /tmp/fail2ban_exporter
+        single_branch: yes
+        version: "{{ fail2ban_exporter_version }}"
+
+    - name: Build fail2ban_exporter from source code
+      become: false
+      delegate_to: localhost
+      shell: go mod download && go build -o fail2ban_exporter
+      args:
+        chdir: /tmp/fail2ban_exporter/src
+        creates: /tmp/fail2ban_exporter/fail2ban_exporter
+
+    - name: Propagate fail2ban_exporter binary
+      copy:
+        src: /tmp/fail2ban_exporter/src/fail2ban_exporter
+        dest: "{{ _prometheus_binary_install_dir }}/fail2ban_exporter"
+        mode: 0755
+        owner: root
+        group: root
+      notify:
+        - restart fail2ban_exporter
+  when: monitoring_download_binary
+
+- name: Create fail2ban_exporter systemd service unit
+  template:
+    src: fail2ban_exporter.service.j2
+    dest: /etc/systemd/system/fail2ban_exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - restart fail2ban_exporter

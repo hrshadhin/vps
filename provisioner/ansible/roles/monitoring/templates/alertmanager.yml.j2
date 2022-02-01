@@ -1,0 +1,13 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+route:
+  receiver: admin
+
+receivers:
+  - name: admin
+    email_configs:
+      - to: "{{alertmanager_alert_receive_email}}"
+        from: "{{alertmanager_smtp_from}}"
+        smarthost: {{alertmanager_smtp_host}}:{{alertmanager_smtp_port}}
+        auth_username: "{{alertmanager_smtp_username}}"
+        auth_identity: "{{alertmanager_smtp_username}}"
+        auth_password: "{{alertmanager_smtp_password}}"

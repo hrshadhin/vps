@@ -1,0 +1,105 @@
+---
+- name: create alertmanager system group
+  group:
+    name: alertmanager
+    system: true
+    state: present
+
+- name: create alertmanager system user
+  user:
+    name: alertmanager
+    system: true
+    shell: "/bin/false"
+    group: alertmanager
+    createhome: false
+    home: "{{ alertmanager_data_dir }}"
+
+- name: create alertmanager data directory
+  file:
+    path: "{{ alertmanager_data_dir }}"
+    state: directory
+    owner: alertmanager
+    group: alertmanager
+    mode: 0755
+
+- name: create alertmanager configuration directories
+  file:
+    path: "{{ alertmanager_config_dir }}"
+    state: directory
+    owner: root
+    group: alertmanager
+    mode: 0770
+
+- block:
+    - name: "Get alertmanager checksum list"
+      set_fact:
+        __alertmanager_checksums: "{{ lookup('url', 'https://github.com/prometheus/alertmanager/releases/download/v' + alertmanager_version + '/sha256sums.txt', wantlist=True) | list }}"
+      run_once: true
+
+    - name: "Get alertmanager checksum for {{ go_arch }} architecture"
+      set_fact:
+        __alertmanager_checksum: "{{ item.split(' ')[0] }}"
+      with_items: "{{ __alertmanager_checksums }}"
+      when:
+        - "('linux-' + go_arch + '.tar.gz') in item"
+  delegate_to: localhost
+  when: monitoring_download_binary
+
+- name: download alertmanager binary to local folder
+  become: false
+  get_url:
+    url: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-{{ go_arch }}.tar.gz"
+    dest: "/tmp/alertmanager-{{ alertmanager_version }}.linux-{{ go_arch }}.tar.gz"
+    checksum: "sha256:{{ __alertmanager_checksum }}"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  delegate_to: localhost
+  check_mode: false
+  when: monitoring_download_binary
+
+- name: unpack alertmanager binary
+  become: false
+  unarchive:
+    src: "/tmp/alertmanager-{{ alertmanager_version }}.linux-{{ go_arch }}.tar.gz"
+    dest: "/tmp"
+    creates: "/tmp/alertmanager-{{ alertmanager_version }}.linux-{{ go_arch }}/alertmanager"
+  delegate_to: localhost
+  check_mode: false
+  when: monitoring_download_binary
+
+- name: propagate official alertmanager and amtool binaries
+  copy:
+    src: "/tmp/alertmanager-{{ alertmanager_version }}.linux-{{ go_arch }}/{{item}}"
+    dest: "{{ _prometheus_binary_install_dir }}/{{item}}"
+    mode: 0755
+    owner: root
+    group: root
+  with_items:
+    - alertmanager
+    - amtool
+  notify:
+    - restart alertmanager
+  when: monitoring_download_binary
+
+- name: create alertmanager systemd service unit
+  template:
+    src: alertmanager.service.j2
+    dest: /etc/systemd/system/alertmanager.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart alertmanager
+
+- name: configure alertmanager
+  template:
+    src: "{{ alertmanager_config_file }}"
+    dest: "{{ alertmanager_config_dir }}/alertmanager.yml"
+    force: true
+    owner: root
+    group: alertmanager
+    mode: 0640
+  notify:
+    - restart alertmanager

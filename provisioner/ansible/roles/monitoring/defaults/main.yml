@@ -1,0 +1,150 @@
+---
+# defaults file for monitoring
+monitoring_download_binary: true
+
+#########################################
+############   PROMETEHUS    ############
+#########################################
+prometheus_version: 2.32.1
+
+prometheus_config_dir: /etc/prometheus
+prometheus_db_dir: /var/lib/prometheus
+prometheus_config_file: "prometheus.yml.j2"
+
+prometheus_web_listen_address: "127.0.0.1:9090"
+prometheus_port: 9090
+prometheus_web_external_url: ""
+# See https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md
+prometheus_web_config:
+  tls_server_config: {}
+  http_server_config: {}
+  basic_auth_users: {}
+
+prometheus_storage_retention: "30d"
+# Available since Prometheus 2.7.0
+# [EXPERIMENTAL] Maximum number of bytes that can be stored for blocks. Units
+# supported: KB, MB, GB, TB, PB.
+prometheus_storage_retention_size: "0"
+
+prometheus_config_flags_extra: {}
+# prometheus_config_flags_extra:
+#   storage.tsdb.retention: 15d
+#   alertmanager.timeout: 10s
+
+# prometheus_alertmanager_config: []
+prometheus_alertmanager_config:
+  - static_configs:
+      - targets:
+          - localhost:9093
+
+prometheus_alert_relabel_configs: []
+
+prometheus_global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+
+prometheus_remote_write: []
+prometheus_remote_read: []
+
+prometheus_external_labels:
+  environment: "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}"
+
+prometheus_targets:
+  node:
+    - targets:
+        - localhost:9100
+      labels:
+        env: prod
+        cluster: vps
+  security:
+    - targets:
+        - localhost:9101
+      labels:
+        env: prod
+        cluster: vps
+  app:
+    - targets:
+        - localhost:8000
+      labels:
+        env: prod
+        cluster: vps
+
+prometheus_scrape_configs:
+  - job_name: "prometheus"
+    metrics_path: "{{ prometheus_metrics_path }}"
+    static_configs:
+      - targets:
+          - "localhost:{{prometheus_port}}"
+  - job_name: "node"
+    file_sd_configs:
+      - files:
+          - "{{ prometheus_config_dir }}/file_sd/node.yml"
+  - job_name: "security"
+    file_sd_configs:
+      - files:
+          - "{{ prometheus_config_dir }}/file_sd/security.yml"
+  - job_name: "app"
+    file_sd_configs:
+      - files:
+          - "{{ prometheus_config_dir }}/file_sd/app.yml"
+
+#########################################
+############ Alert Manager ##############
+#########################################
+alertmanager_version: 0.23.0
+alertmanager_config_dir: /etc/alertmanager
+alertmanager_data_dir: /var/lib/alertmanager
+alertmanager_config_file: "alertmanager.yml.j2"
+alertmanager_smtp_host: setme
+alertmanager_smtp_port: 465
+alertmanager_smtp_from: setme
+alertmanager_smtp_username: setme
+alertmanager_smtp_password: setme
+alertmanager_alert_receive_email: setme
+
+#########################################
+############ Node Exporter ##############
+#########################################
+node_exporter_version: 1.3.1
+
+#########################################
+##########  Fail2Ban Exporter ###########
+#########################################
+fail2ban_exporter_version: 0.0.5
+
+#########################################
+################ GRAFANA ################
+#########################################
+install_grafan: true
+grafan_fix_systemd: true
+
+grafana_bind_addr: localhost
+grafana_port: 3000
+grafan_setup_domain: false
+grafana_domain: grafana.example.com
+
+grafana_app_mode: production
+grafana_default_theme: dark
+grafana_default_dashboard:
+
+# Database
+grafana_database:
+  type: sqlite3
+  host: ""
+  name: grafana
+  user: ""
+  password: ""
+  path: grafana.db
+
+# Security
+grafana_admin_user: change_me
+grafana_admin_password: change_me
+grafana_admin_name: change_me
+grafana_admin_email: change_me
+grafana_allow_sign_up: false
+grafana_verify_email_enabled: false
+
+# Log
+grafana_log_mode: console file
+grafana_log_level: info

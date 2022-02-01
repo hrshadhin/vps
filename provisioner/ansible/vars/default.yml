@@ -232,8 +232,10 @@ backup_postgresdbs: "{{ pg_database_names }}"
 ## Blocky
 blocky_doh: false
 blocky_doh_domain: "{{ lookup('env', 'DOH_DOMAIN') | default('setme', True) }}"
-blocky_behind_proxy: true
+blocky_http_enable: true
 blocky_http_port: 3004
+blocky_behind_proxy: true
+blocky_promeheus_enable: true
 
 ## Wireguard
 wg_server_public_ip: "{{ '192.168.60.60' if is_local is defined and is_local else '' }}"
@@ -244,3 +246,64 @@ wg_user_list:
   hrsp: { username: "hrsp", private_ip: "10.8.0.4", remove: no }
   hr01: { username: "hr01", private_ip: "10.8.0.5", remove: no }
   hl01: { username: "hl01", private_ip: "10.8.0.6", remove: no }
+
+## Monitoring
+monitoring_download_binary: true
+monitoring_components:
+  - prometheus
+  - alert_manager
+  - grafana
+  - node_exporter
+  - fail2ban_exporter
+
+### alert_manager
+alertmanager_version: 0.23.0
+alertmanager_smtp_host: "{{ lookup('env', 'SMTP_HOST') | default('setme', True) }}"
+alertmanager_smtp_port: "{{ lookup('env', 'SMTP_PORT') | default('465', True) }}"
+alertmanager_smtp_from: "{{ lookup('env', 'SMTP_FROM') | default('setme', True) }}"
+alertmanager_smtp_username: "{{ lookup('env', 'SMTP_USERNAME') | default('setme', True) }}"
+alertmanager_smtp_password: "{{ lookup('env', 'SMTP_PASSWORD') | default('setme', True) }}"
+alertmanager_alert_receive_email: "{{sysadmin_email}}"
+
+### grafana
+install_grafan: true
+grafana_bind_addr: localhost
+grafana_port: 9091
+grafan_setup_domain: true
+grafana_domain: "{{ lookup('env', 'GFN_DOMAIN') | default('grafana.example.com', True) }}"
+grafana_admin_user: "{{ lookup('env', 'GFN_USER') | default('setme', True) }}"
+grafana_admin_password: "{{ lookup('env', 'GFN_PASS') | default('setme', True) }}"
+grafana_admin_name: "{{ lookup('env', 'GFN_USERNAME') | default('setme', True) }}"
+grafana_admin_email: "{{ lookup('env', 'GFN_USEREMAIL') | default('setme', True) }}"
+grafana_default_dashboard: /var/lib/grafana/dashboards/server-stats-1644011882362.json
+
+### node_exporter
+node_exporter_version: 1.3.1
+
+### fail2ban_exporter
+fail2ban_exporter_version: 0.5.0
+
+### prometheus config
+prometheus_version: 2.32.1
+prometheus_web_listen_address: "localhost:9090"
+prometheus_port: 9090
+rules_list: []
+prometheus_targets:
+  node:
+    - targets:
+        - localhost:9100
+      labels:
+        name: vps_1
+        cluster: cc
+  security:
+    - targets:
+        - localhost:9101
+      labels:
+        name: fail2ban
+        cluster: cc
+  app:
+    - targets:
+        - "localhost:{{blocky_http_port}}"
+      labels:
+        name: blocky
+        cluster: cc

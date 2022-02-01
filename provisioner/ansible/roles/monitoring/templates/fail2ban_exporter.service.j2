@@ -1,0 +1,16 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description=Fail2Ban Exporter
+After=network-online.target
+
+[Service]
+Type=simple
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart={{ _prometheus_binary_install_dir }}/fail2ban_exporter -socket /var/run/fail2ban/fail2ban.sock -web.listen-address="127.0.0.1" -port 9101
+
+SyslogIdentifier=fail2ban_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

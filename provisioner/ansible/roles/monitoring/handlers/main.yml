@@ -1,0 +1,47 @@
+---
+- name: reload systemd
+  systemd:
+    daemon_reload: true
+
+- name: restart prometheus
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: prometheus
+    state: restarted
+
+- name: reload prometheus
+  systemd:
+    name: prometheus
+    state: reloaded
+
+- name: restart alertmanager
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: alertmanager
+    state: restarted
+
+- name: restart grafana
+  systemd:
+    name: grafana-server
+    state: restarted
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: restart node_exporter
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: node_exporter
+    state: restarted
+
+- name: restart fail2ban_exporter
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: fail2ban_exporter
+    state: restarted
