@@ -24,6 +24,12 @@ to automate VPS setup. It helps me to setup my personal VPS in any cloud within
 - **blocky** - DNS-proxy with adBlocker
 - **wireguard** - Secure & faster VPN
 - **backup** - Automated backups for apps & databases
+- **monitoring** - System & app monitoring
+  - prometheus
+  - alert_manager
+  - grafana
+  - node_exporter
+  - fail2ban_exporter
 
 ## How to run?
 
@@ -81,8 +87,14 @@ vagrant halt
     - blocky
     - wireguard
     - backup
+    - monitoring
   ```
 
 ## Have a query?
 
 > Just create an issue or e-mail me :)
+
+## Showcase
+
+![stats](./_doc/stats.png)
+![dns](./_doc/dns.png)
