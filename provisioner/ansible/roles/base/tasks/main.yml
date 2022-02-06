@@ -66,6 +66,8 @@
 - name: Install ufw
   include_tasks: ufw.yml
   when: install_ufw
+  tags:
+    - ufw
 
 - name: Flush all handlers at this point
   meta: flush_handlers

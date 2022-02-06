@@ -16,6 +16,8 @@
   notify:
     - restart ufw
   when: ufw_rules != []
+  tags:
+    - update_rules
 
 - name: Enable ufw logging
   ufw: logging=on

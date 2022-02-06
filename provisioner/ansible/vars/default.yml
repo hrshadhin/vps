@@ -34,6 +34,7 @@ docker_compose_version: 1.29.2
 # Firewall
 ssh_port: "{{ lookup('env', 'SSH_PORT') | default('22', True) }}"
 ssh_allowed_from: 0.0.0.0/0
+my_ip_1: "{{ lookup('env', 'MY_IP_1') | default('0.0.0.0', True) }}"
 install_fail2ban: true
 install_ufw: true
 ufw_rules:
@@ -46,6 +47,7 @@ ufw_rules:
   - { rule: "allow", port: 80, proto: "tcp", src: "any" }
   - { rule: "allow", port: 443, proto: "tcp", src: "any" }
   - { rule: "allow", port: 5432, proto: "tcp", src: "{{docker_host_ip}}/16" }
+  - { rule: "allow", port: 53, proto: "any", src: "{{my_ip_1}}" }
 
 # Postgresql
 pg_listen_addresses: "localhost,{{docker_host_ip}}"
@@ -230,7 +232,7 @@ postgresdb_backup_user_password: "{{ pg_user_password }}"
 backup_postgresdbs: "{{ pg_database_names }}"
 
 ## Blocky
-blocky_doh: false
+blocky_doh: true
 blocky_doh_domain: "{{ lookup('env', 'DOH_DOMAIN') | default('setme', True) }}"
 blocky_http_enable: true
 blocky_http_port: 3004
