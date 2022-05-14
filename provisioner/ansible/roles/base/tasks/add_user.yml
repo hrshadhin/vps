@@ -6,9 +6,20 @@
     creates: "{{ user_passfile }}"
   delegate_to: localhost
   become: no
+  when: secondary_user_password | default('', true) | trim != ''
+
+- name: create {{secondary_user_username}} group
+  group:
+    name: "{{secondary_user_username}}"
+    state: present
 
 - name: Ensure User {{secondary_user_username}} is Present
-  user: name={{secondary_user_username}} password={{ lookup('file', user_passfile) }} group=sudo shell="/bin/bash" state=present
+  user: name={{secondary_user_username}} password={{ lookup('file', user_passfile) }} groups=sudo,{{secondary_user_username}} shell="/bin/bash" state=present append=yes
+  when: secondary_user_password | default('', true) | trim != ''
+
+- name: Ensure User {{secondary_user_username}} is Present(no password)
+  user: name={{secondary_user_username}} groups=sudo,{{secondary_user_username}} shell="/bin/bash" state=present append=yes
+  when: secondary_user_password | default('', true) | trim == ''
 
 - name: Add User to SUDOERS
   copy:

@@ -1,12 +1,16 @@
 ---
+- name: Set distro name
+  set_fact:
+    distro_name: "{{ansible_distribution | lower}}"
+
 - name: Add Docker CE GPG
   apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
+    url: https://download.docker.com/linux/{{distro_name}}/gpg
     state: present
 
 - name: Add Docker CE repo
   apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/{{distro_name}} {{ ansible_distribution_release }} stable
     state: present
     filename: docker
 

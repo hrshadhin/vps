@@ -26,6 +26,7 @@
       - gnupg-agent
       - software-properties-common
       - acl
+      - htop
 
 - name: Update Timezone to {{time_zone}}
   timezone:

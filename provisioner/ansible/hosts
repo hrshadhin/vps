@@ -1,5 +1,5 @@
 [VPS]
-lcloud ansible_host=lcloud
+homelab ansible_host=homelab
 
 
 [VPS:vars]
