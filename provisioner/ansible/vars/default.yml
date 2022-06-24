@@ -6,6 +6,7 @@ sysadmin_email: sysadmin@hrshadhin.me
 time_zone: Asia/Dhaka
 add_secondary_user: true
 secondary_user_password:
+ssh_pub_key_path: ~/.ssh/id_rsa_vp5.pub
 
 # zsh
 zsh_antigen_version: v2.2.3
@@ -140,6 +141,7 @@ static_sites: "{{ lookup('env', 'STATIC_WEBSITES') | default('', True) | split('
 shiori_domain_name: "{{ lookup('env', 'SHIORI_DOMAIN') | default('setme', True) }}"
 shiori_port: 3001
 shiori_dbms: postgresql
+shiori_db_port: 5432
 shiori_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
 shiori_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('setme', True) }}"
 shiori_db_name: archive
