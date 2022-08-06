@@ -175,7 +175,7 @@ dnote_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }
 dnote_db_name: dnote
 
 # focalboard
-focalboard_version: 0.10.0
+focalboard_version: 7.1.0
 focalboard_domain_name: "{{ lookup('env', 'FOCALBOARD_DOMAIN') | default('setme', True) }}"
 focalboard_port: 3003
 focalboard_db_type: postgres
