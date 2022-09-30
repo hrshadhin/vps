@@ -1,0 +1,244 @@
+# SearXNG settings
+
+#use_default_settings: true
+use_default_settings:
+    engines:
+       remove:
+         - etymonline
+         - mymemory translated
+         - wiktionary
+         - wordnik
+         - duden
+         - woxikon.de synonyme
+         - jisho
+         - sjp.pwn
+         - duckduckgo weather
+         - emojipedia
+         - erowid
+         - imdb
+         - wolframalpha
+         - wttr.in
+
+
+general:
+  debug: false
+  instance_name: "Ask me?"
+
+search:
+  # Filter results. 0: None, 1: Moderate, 2: Strict
+  safe_search: 0
+  # Existing autocomplete backends: "dbpedia", "duckduckgo", "google", "yandex",
+  # "seznam", "startpage", "swisscows", "qwant", "wikipedia" - leave blank to turn it off
+  autocomplete: "duckduckgo"
+  default_lang: "en-US"
+
+server:
+  secret_key: "{{searx_secret_key}}"
+  base_url: "https://{{searx_domain}}/"
+  limiter: false
+  image_proxy: true
+  http_protocol_version: "1.1"
+
+redis:
+  url: "{{ searx_redis_url }}"
+
+ui:
+  autofocus : True
+  static_use_hash: true
+  theme_args:
+    # style of simple theme: auto, light, dark
+    simple_style: dark
+
+preferences:
+  lock:
+    - autocomplete
+    - method
+    - image_proxy
+
+enabled_plugins:
+  - "Hash plugin"
+  - "Search on category select"
+  - "Self Informations"
+  - "Tracker URL remover"
+  - "Ahmia blacklist"
+  # - 'Hostname replace'  # see hostname_replace configuration below
+  # - 'Infinite scroll'
+  # - 'Open Access DOI rewrite'
+  # - 'Vim-like hotkeys'
+
+# plugins:
+#   - only_show_green_results
+
+# hostname_replace:
+#
+#   # twitter --> nitter
+#   '(www\.)?twitter\.com$': 'nitter.net'
+
+
+engines:
+  # general
+  - name: bing
+    disabled: true
+  - name: brave
+    disabled: true
+  - name: gigablast
+    disabled: true
+  - name: google
+    use_mobile_ui: true
+  - name: fdroid
+    disabled: true
+  - name: apk mirror
+    disabled: true
+  - name: mediathekviewweb
+    categories: TV
+    disabled: true
+  - name: mojeek
+    disabled: true
+  - name: neeva
+    disabled: true
+  - name: qwant
+    disabled: true
+  - name: startpage
+    disabled: true
+  - name: wiby
+    disabled: true
+  - name: yahoo
+    disabled: true
+  - name: seznam
+    disabled: true
+  - name: naver
+    disabled: true
+  - name: alexandria
+    disabled: true
+  - name: curlie
+    disabled: true
+  - name: currency
+    disabled: true
+  - name: ddg definitions
+    disabled: true
+  - name: dictzone
+    disabled: true
+  - name: lingva
+    disabled: true
+  - name: marginalia
+    disabled: true
+  - name: petalsearch
+    disabled: true
+  - name: tineye
+    disabled: true
+  - name: wikibooks
+    disabled: true
+  - name: wikiquote
+    disabled: true
+  - name: wikisource
+    disabled: true
+  - name: wikiversity
+    disabled: true
+  - name: wikivoyage
+    disabled: true
+  - name: yep
+    disabled: true
+  - name: wikimini
+    disabled: true
+  # images
+  - name: duckduckgo images
+    disabled: true
+  - name: 1x
+    disabled: true
+  - name: frinkiac
+    disabled: true
+  - name: petalsearch images
+    disabled: true
+  # videos
+  - name: bing videos
+    disabled: true
+  - name: ccc-tv
+    disabled: true
+  - name: google play movies
+    disabled: true
+  - name: invidious
+    disabled: true
+  - name: peertube
+    disabled: true
+  - name: rumble
+    disabled: true
+  - name: mediathekviewweb
+    disabled: true
+  - name: ina
+    disabled: true
+  - name: sepiasearch
+    disabled: true
+  # news
+  - name: petalsearch news
+    disabled: true
+  - name: wikinews
+    disabled: true
+  - name: yahoo news
+    disabled: true
+  # map
+  - name: apple maps
+    disabled: true
+  # music
+  - name: azlyrics
+    disabled: true
+  - name: genius
+    disabled: true
+  - name: bandcamp
+    disabled: true
+  - name: deezer
+    disabled: true
+  - name: gpodder
+    disabled: true
+  - name: invidious
+    disabled: true
+  - name: mixcloud
+    disabled: true
+  - name: soundcloud
+    disabled: true
+  # it
+  - name: hoogle
+    disabled: true
+  - name: lib.rs
+    disabled: true
+  - name: npm
+    disabled: true
+  - name: packagist
+    disabled: true
+  - name: rubygems
+    disabled: true
+  - name: bitbucket
+    disabled: true
+  - name: codeberg
+    disabled: true
+  - name: gitlab
+    disabled: false
+  - name: sourcehut
+    disabled: false
+  - name: free software directory
+    disabled: true
+  - name: gentoo
+    disabled: true
+  - name: framalibre
+    disabled: true
+  - name: habrahabr
+    disabled: true
+  - name: lobste.rs
+    disabled: true
+  - name: mankier
+    disabled: true
+  - name: searchcode code
+    disabled: true
+  # science
+  - name: openairedatasets
+    disabled: true
+  - name: openairepublications
+    disabled: true
+  - name: pdbe
+    disabled: true
+  # files
+  # social media
+  - name: 9gag
+    disabled: false
+  - name: twitter
+    disabled: false
+  # other

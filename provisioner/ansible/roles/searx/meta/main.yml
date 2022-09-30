@@ -1,0 +1,23 @@
+galaxy_info:
+  author: H.R. Shadhin
+  description: setup searx server
+  company: ShanixLab
+
+  license: GPL-3.0-or-later
+
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+
+  galaxy_tags:
+    - searx
+    - metasearch
+    - search
+
+dependencies: []

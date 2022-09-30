@@ -1,0 +1,41 @@
+server {
+	##
+	# Basic Settings
+	#
+	listen 80 http2;
+	server_name {{searx_domain}};
+
+	root /var/www/html/{{searx_domain}};
+	index index.html;
+
+	##
+	# Path & Error Settings
+	##
+	location / {
+		if ($request_uri ~ ^/(.*)\.html) {
+			return 302 /$1;
+		}
+		
+		try_files $uri $uri.html $uri/ =404;
+	}
+
+	error_page 404 /404.html;
+	location  /404.html {
+		internal;
+	}
+	
+	##
+	# Logging Settings
+	##
+	access_log  /var/log/nginx/{{searx_domain}}_access.log;
+	error_log   /var/log/nginx/{{searx_domain}}_error.log;	
+	
+	location  /robots.txt {
+		access_log off;
+	}
+	
+	location ~ /favicon.png {
+		access_log off;
+	}
+	
+}

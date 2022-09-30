@@ -25,6 +25,7 @@
     - blocky
     - wireguard
     - monitoring
+    - searx
   tasks:
     - name: WOW
       debug:

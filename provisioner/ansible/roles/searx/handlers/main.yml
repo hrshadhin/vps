@@ -1,0 +1,13 @@
+---
+# handlers file for searx
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Restart searx
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: searx
+    state: restarted

@@ -1,0 +1,9 @@
+---
+# defaults file for searx
+searx_port: 3005
+searx_domain: localhost
+searx_enable_basic_auth: false
+searx_redis_host: 127.0.0.1
+searx_redis_port: 6379
+searx_redis_db_no: 0
+searx_redis_url: "redis://{{searx_redis_host}}:{{searx_redis_port}}?db={{searx_redis_db_no}}"

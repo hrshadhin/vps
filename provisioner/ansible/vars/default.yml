@@ -49,7 +49,11 @@ ufw_rules:
   - { rule: "allow", port: 80, proto: "tcp", src: "any" }
   - { rule: "allow", port: 443, proto: "tcp", src: "any" }
   - { rule: "allow", port: 5432, proto: "tcp", src: "{{docker_host_ip}}/16" }
+  - { rule: "allow", port: 6379, proto: "tcp", src: "{{docker_host_ip}}/16" }
   - { rule: "allow", port: 53, proto: "any", src: "{{my_ip_1}}" }
+
+# Redis
+redis_bind_interface: "127.0.0.1 {{docker_host_ip}}"
 
 # Postgresql
 pg_listen_addresses: "localhost,{{docker_host_ip}}"
@@ -312,3 +316,9 @@ prometheus_targets:
       labels:
         name: blocky
         cluster: cc
+
+# Searx
+searx_port: 3005
+searx_domain: "{{ lookup('env', 'SEARX_DOMAIN') | default('setme', True) }}"
+searx_enable_basic_auth: true
+searx_redis_url: ""

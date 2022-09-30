@@ -1,0 +1,3 @@
+---
+# vars file for searx
+searx_secret_key: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"

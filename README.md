@@ -30,6 +30,7 @@ to automate VPS setup. It helps me to setup my personal VPS in any cloud within
   - grafana
   - node_exporter
   - fail2ban_exporter
+- **searx** - Privacy-respecting metasearch engine
 
 ## How to run?
 

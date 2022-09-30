@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  searxng:
+    container_name: searxng
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+     - "127.0.0.1:{{searx_port}}:8080"
+    volumes:
+      - ./:/etc/searxng:rw
+{% if docker_host_access_enabled is defined and docker_host_access_enabled %}
+    extra_hosts:
+      - "{{docker_host_domain}}:{{docker_host_ip}}"
+{% endif %}
+    environment:
+      - SEARXNG_BASE_URL=https://{{searx_domain}}/
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
