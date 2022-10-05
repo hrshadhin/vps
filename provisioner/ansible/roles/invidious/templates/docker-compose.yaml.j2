@@ -1,0 +1,35 @@
+version: "3"
+services:
+  invidious:
+    container_name: invidious
+    image: quay.io/invidious/invidious:latest
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+     - "127.0.0.1:{{invidious_port}}:3000"
+{% if docker_host_access_enabled is defined and docker_host_access_enabled %}
+    extra_hosts:
+      - "{{docker_host_domain}}:{{docker_host_ip}}"
+{% endif %}
+    environment:
+      INVIDIOUS_CONFIG: |
+        db:
+          dbname: {{invidious_db_name}}
+          user: {{invidious_db_user}}
+          password: "{{invidious_db_password}}"
+          host: {{invidious_db_host}}
+          port: {{invidious_db_port}}
+        check_tables: true
+        external_port: 443
+        domain: "{{invidious_domain}}"
+        https_only: true
+        registration_enabled: true
+        region: US
+        captions: ["English", "English (auto-generated)"]
+        dark_mode: true
+        local: true
+    healthcheck:
+      test: "wget -nv --tries=1 --spider http://127.0.0.1:{{invidious_port}}/api/v1/comments/jNQXAC9IVRw || exit 1"
+      interval: 30s
+      timeout: 5s
+      retries: 2

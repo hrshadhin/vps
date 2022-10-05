@@ -1,0 +1,10 @@
+---
+# defaults file for invidious
+invidious_port: 3006
+invidious_domain: localhost
+invidious_enable_basic_auth: false
+invidious_db_host: db
+invidious_db_port: 5432
+invidious_db_user: nobody
+invidious_db_password: setme
+invidious_db_name: invidious

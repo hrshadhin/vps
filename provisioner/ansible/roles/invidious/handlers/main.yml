@@ -1,0 +1,13 @@
+---
+# handlers file for invidious
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Restart invidious
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: invidious
+    state: restarted

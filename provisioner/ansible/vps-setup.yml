@@ -6,26 +6,27 @@
   vars_files:
     - vars/default.yml
   roles:
-    - base
-    - zsh
-    - docker
-    - postgresql
-    - mariadb
-    - redis
-    - nginx
-    - php
-    - vaultwarden
-    - websites
-    - shiori
-    - firefly3
-    - dnote
-    - focalboard
-    - monica
-    - backup
-    - blocky
-    - wireguard
-    - monitoring
-    - searx
+    # - base
+    # - zsh
+    # - docker
+    # - postgresql
+    # - mariadb
+    # - redis
+    # - nginx
+    # - php
+    # - vaultwarden
+    # - websites
+    # - shiori
+    # - firefly3
+    # - dnote
+    # - focalboard
+    # - monica
+    # - backup
+    # - blocky
+    # - wireguard
+    # - monitoring
+    # - searx
+    - invidious
   tasks:
     - name: WOW
       debug:

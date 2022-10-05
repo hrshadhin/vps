@@ -2,6 +2,7 @@
 # defaults file for backup
 backup_base_dir: "$HOME/backups"
 
+gdrive_cli_install: true
 gdrive_binary_install_dir: /usr/local/bin
 gdrive_version: 2.1.1
 gdrive_build_binary: false

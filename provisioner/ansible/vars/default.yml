@@ -1,5 +1,5 @@
 # Global
-is_local: true
+is_local: false
 
 # Basic
 sysadmin_email: sysadmin@hrshadhin.me
@@ -65,6 +65,7 @@ pg_database_names:
   - honey
   - focalboard
   - archive
+  - invidious
 pq_hba_mapping:
   - {
       type: "host",
@@ -99,6 +100,13 @@ pq_hba_mapping:
       database: "archive",
       user: "{{pg_user}}",
       address: "127.0.0.1/32",
+      method: "md5",
+    }
+  - {
+      type: "host",
+      database: "invidious",
+      user: "{{pg_user}}",
+      address: "{{docker_host_ip}}/16",
       method: "md5",
     }
 
@@ -211,6 +219,7 @@ monica_mfa_enabled: "true"
 monica_dav_enabled: "false"
 
 # backup
+gdrive_cli_install: false
 gdrive_version: 2.1.1
 gdrive_build_binary: true
 gservice_account_json_base64: "{{ lookup('env', 'GSERVICE_ACCOUNT_JSON_BASE64') | default('setme', True) }}"
@@ -322,3 +331,13 @@ searx_port: 3005
 searx_domain: "{{ lookup('env', 'SEARX_DOMAIN') | default('setme', True) }}"
 searx_enable_basic_auth: true
 searx_redis_url: ""
+
+# Invidious
+invidious_port: 3006
+invidious_domain: "{{ lookup('env', 'INVIDIOUS_DOMAIN') | default('setme', True) }}"
+invidious_enable_basic_auth: true
+invidious_db_host: "{{docker_host_domain}}"
+invidious_db_port: 5432
+invidious_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
+invidious_db_password: "{{ lookup('env', 'PG_USER_PASSWORD') | default('setme', True) }}"
+invidious_db_name: invidious

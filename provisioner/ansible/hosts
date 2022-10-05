@@ -1,7 +1,7 @@
 [VPS]
-homelab ansible_host=homelab
+cccloud ansible_host=cccloud
 
 
 [VPS:vars]
 ansible_python_interpreter=/usr/bin/python3
-is_local=true
+is_local=false

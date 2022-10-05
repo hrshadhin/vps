@@ -1,5 +1,10 @@
 ---
 # tasks file for searx
+- name: ensure {{searx_domain}} directory exists
+  file:
+    path: "/var/www/html/{{searx_domain}}"
+    state: directory
+
 - name: Copy settings.yml file
   template:
     src: settings.yml.j2
@@ -11,8 +16,6 @@
     src: docker-compose.yaml.j2
     dest: "/var/www/html/{{searx_domain}}/docker-compose.yaml"
     mode: "0644"
-  notify:
-    - Restart searx
 
 - name: Ensure {{searx_domain}} file exists for nginx
   template:

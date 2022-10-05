@@ -1,15 +1,15 @@
 server {
-	if ($host = {{searx_domain}}) {
+	if ($host = {{invidious_domain}}) {
 		return 301 https://$host$request_uri;
 	}
 
 	listen 80;
-	server_name {{searx_domain}};
+	server_name {{invidious_domain}};
 	return 404;
 }
 
-upstream searx {
-	server	127.0.0.1:{{searx_port}};
+upstream invidious {
+	server	127.0.0.1:{{invidious_port}};
 	keepalive 64;
 }
 
@@ -18,9 +18,9 @@ server {
 	# Basic Settings
 	#
 	listen 443 ssl;
-	server_name {{searx_domain}};
+	server_name {{invidious_domain}};
 
-	root /var/www/html/{{searx_domain}};
+	root /var/www/html/{{invidious_domain}};
 	index index.html;
 
 	include /etc/nginx/snippets/headers.conf;	
@@ -29,8 +29,8 @@ server {
 	##
 	# SSL Settings
 	##
-	ssl_certificate /etc/letsencrypt/live/{{searx_domain}}/fullchain.pem;
-	ssl_certificate_key /etc/letsencrypt/live/{{searx_domain}}/privkey.pem;
+	ssl_certificate /etc/letsencrypt/live/{{invidious_domain}}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{invidious_domain}}/privkey.pem;
 	include /etc/letsencrypt/options-ssl-nginx.conf;
 	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
@@ -38,7 +38,7 @@ server {
 	# Path & Error Settings
 	##
 	location / {
-{% if searx_enable_basic_auth %}
+{% if invidious_enable_basic_auth %}
 		auth_basic "Who are you?";
 		auth_basic_user_file /etc/nginx/.htpasswd;
 {% endif %}
@@ -48,14 +48,14 @@ server {
 		proxy_set_header X-Real-IP $remote_addr;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_pass http://searx;
+		proxy_pass http://invidious;
 	}
 
 	##
 	# Logging Settings
 	##
-	access_log  /var/log/nginx/{{searx_domain}}_access.log;
-	error_log   /var/log/nginx/{{searx_domain}}_error.log;	
+	access_log  /var/log/nginx/{{invidious_domain}}_access.log;
+	error_log   /var/log/nginx/{{invidious_domain}}_error.log;	
 	
 	location  /robots.txt {
 		access_log off;

@@ -62,7 +62,7 @@
     mode: "0644"
   notify:
     - Restart dnote_server
-    -
+
 - name: Create robots.txt
   copy:
     content: "User-agent: *\nDisallow: /\n"

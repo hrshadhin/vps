@@ -3,9 +3,9 @@ server {
 	# Basic Settings
 	#
 	listen 80;
-	server_name {{searx_domain}};
+	server_name {{invidious_domain}};
 
-	root /var/www/html/{{searx_domain}};
+	root /var/www/html/{{invidious_domain}};
 	index index.html;
 
 	##
@@ -27,8 +27,8 @@ server {
 	##
 	# Logging Settings
 	##
-	access_log  /var/log/nginx/{{searx_domain}}_access.log;
-	error_log   /var/log/nginx/{{searx_domain}}_error.log;	
+	access_log  /var/log/nginx/{{invidious_domain}}_access.log;
+	error_log   /var/log/nginx/{{invidious_domain}}_error.log;	
 	
 	location  /robots.txt {
 		access_log off;

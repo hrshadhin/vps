@@ -31,6 +31,7 @@ to automate VPS setup. It helps me to setup my personal VPS in any cloud within
   - node_exporter
   - fail2ban_exporter
 - **searx** - Privacy-respecting metasearch engine
+- **invidious** - An alternative front-end to YouTube
 
 ## How to run?
 
@@ -89,6 +90,8 @@ vagrant halt
     - wireguard
     - backup
     - monitoring
+    - searx
+    - invidious
   ```
 
 ## Have a query?

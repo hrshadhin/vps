@@ -22,7 +22,7 @@
 
 - name: Install gdrive
   include_tasks: install_gdrive.yml
-  when: true
+  when: gdrive_cli_install
 
 - name: Ensure scripts directory exists
   become: false

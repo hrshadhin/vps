@@ -47,7 +47,7 @@
     - name: Build gdrive from source code
       become: false
       delegate_to: localhost
-      shell: "go get github.com/prasmussen/gdrive@{{gdrive_version}}"
+      shell: "go install github.com/prasmussen/gdrive@{{gdrive_version}}"
       args:
         creates: "{{ lookup('env', 'GOPATH') | default('~/go', True) }}/bin/gdrive"
 
