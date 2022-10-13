@@ -1,7 +1,9 @@
 [VPS]
-cccloud ansible_host=cccloud
+ctcloud ansible_host=ctcloud
 
 
 [VPS:vars]
 ansible_python_interpreter=/usr/bin/python3
 is_local=false
+# ansible_user=root 
+# ansible_ssh_pass=set_me

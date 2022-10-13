@@ -3,5 +3,5 @@
 enable_insecure_registry: false
 docker_insecure_registry: "/etc/docker"
 install_docker_compose: true
-docker_compose_version: 1.29.2
+docker_compose_version: v2.11.2
 docker_extra_users: []

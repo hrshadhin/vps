@@ -27,6 +27,8 @@
       - software-properties-common
       - acl
       - htop
+      - tmux
+      - net-tools
 
 - name: Update Timezone to {{time_zone}}
   timezone:

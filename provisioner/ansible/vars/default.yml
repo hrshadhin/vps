@@ -5,12 +5,13 @@ is_local: false
 sysadmin_email: sysadmin@hrshadhin.me
 time_zone: Asia/Dhaka
 add_secondary_user: true
+# key empty if want only ssh key based login
 secondary_user_password:
 ssh_pub_key_path: ~/.ssh/id_rsa_vp5.pub
 
 # zsh
 zsh_antigen_version: v2.2.3
-zsh_fzf_version: 0.28.0
+zsh_fzf_version: 0.34.0
 
 zsh_antigen_bundles:
   - git
@@ -25,13 +26,16 @@ zsh_antigen_bundles:
 zsh_aliases:
   - { alias: "py", action: "python3" }
   - { alias: "dfh", action: "df -h" }
+  - { alias: "..", action: "cd .." }
+  - { alias: "...", action: "cd ../.." }
+  - { alias: "....", action: "cd ../../.." }
 
 # Docker
 docker_host_access_enabled: true
 docker_host_domain: host.docker.internal
 docker_host_ip: 172.17.0.1
 install_docker_compose: true
-docker_compose_version: v2.5.0
+docker_compose_version: v2.11.2
 
 # Firewall
 ssh_port: "{{ lookup('env', 'SSH_PORT') | default('22', True) }}"
@@ -50,7 +54,7 @@ ufw_rules:
   - { rule: "allow", port: 443, proto: "tcp", src: "any" }
   - { rule: "allow", port: 5432, proto: "tcp", src: "{{docker_host_ip}}/16" }
   - { rule: "allow", port: 6379, proto: "tcp", src: "{{docker_host_ip}}/16" }
-  - { rule: "allow", port: 53, proto: "any", src: "{{my_ip_1}}" }
+  # - { rule: "allow", port: 53, proto: "any", src: "{{my_ip_1}}" }
 
 # Redis
 redis_bind_interface: "127.0.0.1 {{docker_host_ip}}"
@@ -118,16 +122,16 @@ mariadb_database_names:
   - monica
 
 # nginx
-setup_ssl: false
+setup_ssl: true
 primary_domain: "{{ lookup('env', 'PRIMARY_DOMAIN') | default('example.com', True) }}"
 certbot_plugin: nginx
 certbot_mail_address: "{{sysadmin_email}}"
 
 # php
-php_version: 8.0
+php_version: 8.1
 
 # bitwarden
-vaultwarden_version: 1.23.0
+vaultwarden_version: 1.25.2
 vaultwarden_db_type: postgresql
 vaultwarden_db_host: "{{docker_host_domain}}"
 vaultwarden_db_port: 5432
@@ -140,7 +144,7 @@ vaultwarden_signups_verify: "true"
 vaultwarden_emergency_access_allowed: "false"
 vaultwarden_domain: "{{ lookup('env', 'VAULT_DOMAIN') | default('setme', True) }}"
 vaultwarden_smtp_host: "{{ lookup('env', 'SMTP_HOST') | default('setme', True) }}"
-vaultwarden_smtp_port: "{{ lookup('env', 'SMTP_PORT') | default('465', True) }}"
+vaultwarden_smtp_port: "{{ lookup('env', 'SMTP_PORT') | default('587', True) }}"
 vaultwarden_smtp_from: "{{ lookup('env', 'SMTP_FROM') | default('setme', True) }}"
 vaultwarden_smtp_from_name: "{{ lookup('env', 'SMTP_FROM_NAME') | default('setme', True) }}"
 vaultwarden_smtp_username: "{{ lookup('env', 'SMTP_USERNAME') | default('setme', True) }}"

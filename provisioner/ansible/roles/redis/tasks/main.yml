@@ -1,6 +1,17 @@
 ---
+- name: Add Redis GPG
+  apt_key:
+    url: https://packages.redis.io/gpg
+    state: present
+
+- name: Add Redis repo
+  apt_repository:
+    repo: deb https://packages.redis.io/deb {{ ansible_distribution_release }} main
+    state: present
+    filename: redis
+
 - name: Ensure Redis is present
-  apt: name=redis-server state=latest
+  apt: name=redis state=latest
 
 - name: Ensure Redis is started
   service: name=redis-server state=started enabled=yes

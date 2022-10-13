@@ -1,6 +1,6 @@
 ---
 # defaults file for vaultwarden
-vaultwarden_version: 1.23.0
+vaultwarden_version: 1.25.2
 vaultwarden_db_type: postgresql
 vaultwarden_db_host: db
 vaultwarden_db_port: 5432
@@ -18,8 +18,8 @@ vaultwarden_signups_allowed: "true"
 vaultwarden_signups_verify: "true"
 vaultwarden_domain: setme
 vaultwarden_smtp_host: setme
-vaultwarden_smtp_port: 465
-vaultwarden_smtp_ssl: "true"
+vaultwarden_smtp_port: 587
+vaultwarden_smtp_ssl: "starttls"
 vaultwarden_smtp_timeout: 15
 vaultwarden_smtp_from: setme
 vaultwarden_smtp_from_name: Vault

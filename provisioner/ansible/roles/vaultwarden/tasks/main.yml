@@ -16,8 +16,6 @@
     src: docker-compose.yaml.j2
     dest: "/var/www/html/{{vaultwarden_domain}}/docker-compose.yaml"
     mode: "0644"
-  notify:
-    - Restart vaultwarden
 
 # - name: "Tear down existing services"
 #   docker_compose:
