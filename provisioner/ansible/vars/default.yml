@@ -163,7 +163,7 @@ shiori_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('setme', True) }
 shiori_db_name: archive
 
 # finance
-firefly3_version: 5.6.4
+firefly3_version: 5.7.12
 firefly3_site_owner: "{{sysadmin_email}}"
 firefly3_tz: Asia/Dhaka
 
@@ -183,7 +183,7 @@ firefly3_domain: "{{ lookup('env', 'FIREFLY3_DOMAIN') | default('setme', True) }
 firefly3_app_key: "{{ lookup('env', 'FIREFLY3_APP_KEY') | default('setme', True) }}"
 
 # dnote
-dnote_version: 1.0.4
+dnote_version: 2.0.1
 dnote_domain_name: "{{ lookup('env', 'DNOTE_DOMAIN') | default('setme', True) }}"
 dnote_port: 3002
 dnote_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
@@ -191,7 +191,7 @@ dnote_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }
 dnote_db_name: dnote
 
 # focalboard
-focalboard_version: 7.1.0
+focalboard_version: 7.2.1
 focalboard_domain_name: "{{ lookup('env', 'FOCALBOARD_DOMAIN') | default('setme', True) }}"
 focalboard_port: 3003
 focalboard_db_type: postgres

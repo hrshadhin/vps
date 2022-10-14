@@ -63,11 +63,6 @@
   notify:
     - Restart dnote_server
 
-- name: Create robots.txt
-  copy:
-    content: "User-agent: *\nDisallow: /\n"
-    dest: "/var/www/html/{{dnote_domain_name}}/robots.txt"
-
 - name: Ensure {{dnote_domain_name}} directory permission for webserver
   file:
     path: /var/www/html/{{dnote_domain_name}}
@@ -75,6 +70,12 @@
     group: www-data
     mode: "0755"
     recurse: yes
+
+- name: Create robots.txt
+  become_user: www-data
+  copy:
+    content: "User-agent: *\nDisallow: /\n"
+    dest: "/var/www/html/{{dnote_domain_name}}/robots.txt"
 
 - name: Ensure {{dnote_domain_name}} file exists for nginx
   template:

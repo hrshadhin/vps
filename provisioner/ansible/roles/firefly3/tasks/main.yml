@@ -7,6 +7,15 @@
 - name: Generate locale
   shell: locale-gen
 
+- name: "Ensure {{firefly3_domain}} directory exists"
+  file:
+    path: "/var/www/html/{{firefly3_domain}}"
+    owner: www-data
+    group: www-data
+    mode: "0755"
+    state: directory
+    recurse: true
+
 - name: Check if fire fly iii already exists.
   stat:
     path: "/var/www/html/{{firefly3_domain}}/composer.json"

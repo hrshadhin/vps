@@ -75,9 +75,9 @@
 - name: Flush all handlers at this point
   meta: flush_handlers
 
-# - name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{shiori_domain_name}}
-#   command: "certbot --{{ certbot_plugin }} -d  {{ shiori_domain_name }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
-#   when: is_local is defined and not is_local
+- name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{shiori_domain_name}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ shiori_domain_name }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: is_local is defined and not is_local
 
 - name: Copy {{shiori_domain_name}} https nginx config
   template:
