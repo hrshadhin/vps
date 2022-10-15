@@ -57,6 +57,11 @@
     dest: "/var/www/html/{{monica_domain}}/.env"
     mode: "0644"
 
+- name: Upgrade DB changes
+  shell: php artisan migrate
+  args:
+    chdir: "/var/www/html/{{monica_domain}}"
+
 - name: Create robots.txt
   copy:
     content: "User-agent: *\nDisallow: /\n"

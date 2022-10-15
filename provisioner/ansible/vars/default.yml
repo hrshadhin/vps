@@ -201,7 +201,7 @@ focalboard_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', Tr
 focalboard_db_name: focalboard
 
 # monica
-monica_version: 3.5.0
+monica_version: 3.7.0
 
 monica_db_user: "{{ lookup('env', 'MARIADB_USER') | default('nobody', True) }}"
 monica_db_password: "{{ lookup('env', 'MARIADB_USER_PASSWORD') | default('nobody', True) }}"

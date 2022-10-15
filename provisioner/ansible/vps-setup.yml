@@ -21,12 +21,13 @@
     - dnote
     - focalboard
     - monica
+    - searx
+    - invidious
     - backup
     - blocky
     - wireguard
     - monitoring
-    - searx
-    - invidious
+
   tasks:
     - name: WOW
       debug:
