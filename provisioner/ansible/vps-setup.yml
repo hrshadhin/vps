@@ -29,6 +29,10 @@
     - monitoring
 
   tasks:
+    - name: setup ad-block list update hosts git automation
+      include_tasks: tasks/hosts-git.yml
+      when: setup_hosts_git
+
     - name: WOW
       debug:
         msg: "Playbook Completed"

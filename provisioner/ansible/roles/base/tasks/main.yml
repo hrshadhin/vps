@@ -29,6 +29,7 @@
       - htop
       - tmux
       - net-tools
+      - python3-venv
 
 - name: Update Timezone to {{time_zone}}
   timezone:

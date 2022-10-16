@@ -1,0 +1,71 @@
+---
+# tasks file for setup hosts git repo
+- name: Ansible check directory exists
+  become: false
+  stat:
+    path: ~/hosts
+  register: hosts_repo
+
+- block:
+    - name: Run whoami without become
+      command: whoami
+      changed_when: false
+      become: false
+      register: whoami
+
+    - name: Set variables
+      set_fact:
+        login_user: "{{ whoami.stdout }}"
+
+    - name: generate SSH key id_rsa_gitops
+      become: false
+      openssh_keypair:
+        path: ~/.ssh/id_rsa_gitops
+        type: rsa
+        size: 4096
+        state: present
+        force: no
+        comment: "{{gitops_email}}"
+
+    - name: Add ~/.ssh/config file
+      copy:
+        dest: "/home/{{login_user}}/.ssh/config"
+        content: "Host github.com-repo-0\n  Hostname github.com\n  IdentityFile=/home/{{login_user}}/.ssh/id_rsa_gitops\n"
+
+    - name: get content of pub key file
+      become: false
+      slurp:
+        src: ~/.ssh/id_rsa_gitops.pub
+      register: gitops_pub_key
+
+    - name: "!!! IMPORTANT MESSAGE !!! add below pub key content to your github/gitlab repo"
+      debug:
+        msg: "{{gitops_pub_key.content | b64decode}}"
+
+    - name: Confirmation about add key to repo?
+      pause:
+        prompt: Please confirm that you add public key to github/gitlab repo? Press return to continue. Press Ctrl+c and then "a" to abort
+
+    - name: Clone hosts source code
+      become: false
+      git:
+        accept_hostkey: yes
+        repo: git@github.com-repo-0:hrshadhin/hosts.git
+        dest: ~/hosts
+        single_branch: yes
+        version: master
+
+    - name: install requirement.txt
+      shell: python3 -m venv venv && source venv/bin/activate && pip install -r /requirements.txt
+      args:
+        chdir: ~/hosts
+
+    - name: Ensure hosts repo update job that run at 4am everyday exists
+      become: false
+      cron:
+        name: "update hosts repo"
+        minute: "0"
+        hour: "4"
+        job: "cd /home/{{login_user}}/hosts && ./update.sh > cron.log 2>&1"
+
+  when: not hosts_repo.stat.exists
