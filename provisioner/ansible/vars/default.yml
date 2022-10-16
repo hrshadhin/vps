@@ -5,6 +5,7 @@ setup_hosts_git: false
 # Basic
 sysadmin_email: sysadmin@hrshadhin.me
 gitops_email: gitops@hrshadhin.me
+gitops_name: H.R. Shadhin
 time_zone: Asia/Dhaka
 add_secondary_user: true
 # key empty if want only ssh key based login

@@ -8,9 +8,9 @@
 
 - block:
     - name: Run whoami without become
+      become: false
       command: whoami
       changed_when: false
-      become: false
       register: whoami
 
     - name: Set variables
@@ -56,6 +56,7 @@
         version: master
 
     - name: install requirement.txt
+      become: false
       shell: python3 -m venv venv && source venv/bin/activate && pip install -r /requirements.txt
       args:
         chdir: ~/hosts
@@ -67,5 +68,11 @@
         minute: "0"
         hour: "4"
         job: "cd /home/{{login_user}}/hosts && ./update.sh > cron.log 2>&1"
+
+    - name: Add ~/.gitconfig file
+      become: false
+      copy:
+        dest: "/home/{{login_user}}/.gitconfig"
+        content: "[user]\n  email = {{gitops_email}}\n  name = {{gitops_name}}\n"
 
   when: not hosts_repo.stat.exists
