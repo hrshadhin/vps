@@ -279,7 +279,7 @@ monitoring_components:
   - fail2ban_exporter
 
 ### alert_manager
-alertmanager_version: 0.23.0
+alertmanager_version: 0.24.0
 alertmanager_smtp_host: "{{ lookup('env', 'SMTP_HOST') | default('setme', True) }}"
 alertmanager_smtp_port: "{{ lookup('env', 'SMTP_PORT') | default('465', True) }}"
 alertmanager_smtp_from: "{{ lookup('env', 'SMTP_FROM') | default('setme', True) }}"
@@ -300,13 +300,13 @@ grafana_admin_email: "{{ lookup('env', 'GFN_USEREMAIL') | default('setme', True)
 grafana_default_dashboard: /var/lib/grafana/dashboards/server-stats-1644011882362.json
 
 ### node_exporter
-node_exporter_version: 1.3.1
+node_exporter_version: 1.4.0
 
 ### fail2ban_exporter
-fail2ban_exporter_version: 0.5.0
+fail2ban_exporter_version: 0.7.1
 
 ### prometheus config
-prometheus_version: 2.32.1
+prometheus_version: 2.39.1
 prometheus_web_listen_address: "localhost:9090"
 prometheus_port: 9090
 rules_list: []
@@ -316,19 +316,19 @@ prometheus_targets:
         - localhost:9100
       labels:
         name: vps_1
-        cluster: cc
+        cluster: ct
   security:
     - targets:
         - localhost:9101
       labels:
         name: fail2ban
-        cluster: cc
-  app:
-    - targets:
-        - "localhost:{{blocky_http_port}}"
-      labels:
-        name: blocky
-        cluster: cc
+        cluster: ct
+  # app:
+  #   - targets:
+  #       - "localhost:{{blocky_http_port}}"
+  #     labels:
+  #       name: blocky
+  #       cluster: cc
 
 # Searx
 searx_port: 3005

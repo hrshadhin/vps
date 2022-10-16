@@ -70,18 +70,16 @@
 
 - name: Ensure {{grafana_domain}} file exists for nginx
   template:
-    src: grafana/nginx.conf.j2
-    dest: "/etc/nginx/sites-available/{{grafana_domain}}"
+    src: grafana/nginx_http.conf.j2
+    dest: /etc/nginx/sites-available/{{grafana_domain}}
     mode: "0644"
-  when: grafan_setup_domain
 
-- name: "Enable {{grafana_domain}} nginx config"
+- name: Enable {{grafana_domain}} nginx config
   file:
     src: /etc/nginx/sites-available/{{grafana_domain}}
     dest: /etc/nginx/sites-enabled/{{grafana_domain}}
     state: link
-  notify: restart nginx
-  when: grafan_setup_domain
+  notify: Restart nginx
 
 - name: Flush all handlers at this point
   meta: flush_handlers
@@ -89,3 +87,14 @@
 - name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{grafana_domain}}
   command: "certbot --{{ certbot_plugin }} -d  {{ grafana_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
   when: not is_local and grafan_setup_domain
+
+- name: Ensure {{grafana_domain}} file exists for nginx
+  template:
+    src: grafana/nginx.conf.j2
+    dest: "/etc/nginx/sites-available/{{grafana_domain}}"
+    mode: "0644"
+  notify: restart nginx
+  when: grafan_setup_domain
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
