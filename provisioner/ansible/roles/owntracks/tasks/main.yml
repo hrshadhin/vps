@@ -1,0 +1,114 @@
+---
+# tasks file for owntracks
+- name: Run whoami without become.
+  command: whoami
+  changed_when: false
+  become: false
+  register: whoami
+
+- name: Set variables
+  set_fact:
+    login_user: "{{ whoami.stdout }}"
+
+- block:
+    - name: "Get owntracks_server checksum list"
+      set_fact:
+        __owntracks_server_checksums: "{{ lookup('url', 'https://github.com/hrshadhin/ot-recorder/releases/download/v' + owntracks_version + '/checksums.txt', wantlist=True) | list }}"
+      run_once: true
+    - name: "Get owntracks_server checksum for {{ go_arch }} architecture"
+      set_fact:
+        __owntracks_server_checksum: "{{ item.split(' ')[0] }}"
+      with_items: "{{ __owntracks_server_checksums }}"
+      when:
+        - "('linux_' + go_arch + '.tar.gz') in item"
+  delegate_to: localhost
+
+- name: Download owntracks_server binary to local folder
+  become: false
+  get_url:
+    url: "https://github.com/hrshadhin/ot-recorder/releases/download/v{{owntracks_version}}/ot-recorder_{{owntracks_version}}_linux_{{ go_arch }}.tar.gz"
+    dest: "/tmp/ot-recorder-{{ owntracks_version }}.linux-{{ go_arch }}.tar.gz"
+    checksum: "sha256:{{ __owntracks_server_checksum }}"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  delegate_to: localhost
+  check_mode: false
+
+- name: Unpack owntracks_server binary
+  become: false
+  unarchive:
+    src: "/tmp/ot-recorder-{{ owntracks_version }}.linux-{{ go_arch }}.tar.gz"
+    dest: "/tmp/"
+    creates: "/tmp/ot-recorder"
+  delegate_to: localhost
+  check_mode: false
+
+- name: Propagate official owntracks_server binary
+  copy:
+    src: "/tmp/ot-recorder"
+    dest: "{{ owntracks_binary_install_dir }}/ot-recorder"
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - Restart owntracks_server
+
+- name: Create owntracks_server systemd service unit
+  template:
+    src: owntracks_server.service.j2
+    dest: /etc/systemd/system/owntracks_server.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart owntracks_server
+
+- name: Ensure {{owntracks_domain_name}} directory permission
+  file:
+    path: /var/www/html/{{owntracks_domain_name}}
+    owner: "{{login_user}}"
+    group: "{{login_user}}"
+    mode: "0750"
+    recurse: yes
+
+- name: Copy config file
+  become: false
+  template:
+    src: config.yml.j2
+    dest: "/var/www/html/{{owntracks_domain_name}}/config.yml"
+    mode: "0644"
+
+- name: Ensure {{owntracks_domain_name}} file exists for nginx
+  template:
+    src: nginx_http.conf.j2
+    dest: /etc/nginx/sites-available/{{owntracks_domain_name}}
+    mode: "0644"
+  vars:
+    domain_name: "{{owntracks_domain_name}}"
+
+- name: Enable {{owntracks_domain_name}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{owntracks_domain_name}}
+    dest: /etc/nginx/sites-enabled/{{owntracks_domain_name}}
+    state: link
+  notify: Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{owntracks_domain_name}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ owntracks_domain_name }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: is_local is defined and not is_local
+
+- name: Copy {{owntracks_domain_name}} https nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{owntracks_domain_name}}
+    mode: "0644"
+  vars:
+    domain_name: "{{owntracks_domain_name}}"
+  notify:
+    - Restart nginx
+  when: is_local is defined and not is_local

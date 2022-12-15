@@ -1,0 +1,23 @@
+app:
+  env: production
+  host: localhost
+  port: {{ owntracks_port }}
+  read_timeout: 2s
+  write_timeout: 5s
+  idle_timeout: 3s
+  context_timeout: 2s
+  data_path: /tmp
+  time_zone: "Asia/Dhaka"
+
+database:
+  type: postgres
+  host: {{ owntracks_db_host }}
+  port: {{ owntracks_db_port }}
+  name: {{ owntracks_db_name }}
+  username: {{ owntracks_db_user }}
+  password: {{ owntracks_db_pass }}
+  ssl_mode: disable
+  max_open_conn: 2
+  max_idle_conn: 1
+  max_life_time: 10s
+  debug: true

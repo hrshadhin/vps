@@ -3,10 +3,11 @@ is_local: false
 setup_hosts_git: false
 
 # Basic
-sysadmin_email: sysadmin@hrshadhin.me
-gitops_email: gitops@hrshadhin.me
+sysadmin_email: "{{ lookup('env', 'SYSTEMADMIN_EMAIL') | default('setme', True) }}"
+gitops_email: "{{ lookup('env', 'GITOPS_EMAL') | default('setme', True) }}"
 gitops_name: H.R. Shadhin
 time_zone: Asia/Dhaka
+
 add_secondary_user: true
 # key empty if want only ssh key based login
 secondary_user_password:
@@ -73,6 +74,7 @@ pg_database_names:
   - focalboard
   - archive
   - invidious
+  - owntracks
 pq_hba_mapping:
   - {
       type: "host",
@@ -114,6 +116,13 @@ pq_hba_mapping:
       database: "invidious",
       user: "{{pg_user}}",
       address: "{{docker_host_ip}}/16",
+      method: "md5",
+    }
+  - {
+      type: "host",
+      database: "owntracks",
+      user: "{{pg_user}}",
+      address: "127.0.0.1/32",
       method: "md5",
     }
 
@@ -348,3 +357,10 @@ invidious_db_port: 5432
 invidious_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
 invidious_db_password: "{{ lookup('env', 'PG_USER_PASSWORD') | default('setme', True) }}"
 invidious_db_name: invidious
+
+# OwnTracks
+owntracks_version: 0.1.0
+owntracks_domain_name: "{{ lookup('env', 'OWNTRACKS_DOMAIN') | default('setme', True) }}"
+owntracks_port: 3007
+owntracks_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
+owntracks_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }}"

@@ -32,6 +32,7 @@ to automate VPS setup. It helps me to setup my personal VPS in any cloud within
   - fail2ban_exporter
 - **searx** - Privacy-respecting metasearch engine
 - **invidious** - An alternative front-end to YouTube
+- **OwnTracks** - An open-source location companion.
 
 ## How to run?
 
@@ -47,7 +48,6 @@ vagrant halt
 - Activate venv
   ```bash
   python3 -m venv venv
-  cd provisioner/ansible
   source venv/bin/activate
   pip install -r requirements.txt
   ```
@@ -92,6 +92,7 @@ vagrant halt
     - monitoring
     - searx
     - invidious
+    - owntracks
   ```
 
 ## Have a query?

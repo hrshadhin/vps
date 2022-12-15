@@ -1,0 +1,12 @@
+---
+# defaults file for owntracks
+owntracks_version: 0.1.0
+owntracks_domain_name: example.com
+owntracks_directory_name: "{{owntracks_domain_name}}"
+owntracks_binary_install_dir: /usr/local/bin
+owntracks_port: 3007
+owntracks_db_host: localhost
+owntracks_db_port: 5432
+owntracks_db_user: setme
+owntracks_db_pass: setme
+owntracks_db_name: owntracks
