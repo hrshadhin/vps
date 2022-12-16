@@ -1,5 +1,5 @@
 ---
-# handlers file for dnote
+# handlers file for owntracks
 - name: Restart owntracks_server
   systemd:
     daemon_reload: true

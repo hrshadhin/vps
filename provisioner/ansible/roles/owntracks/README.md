@@ -1,4 +1,4 @@
-# Dnote
+# Owntracks
 
 Store and access data published by OwnTracks apps
 
