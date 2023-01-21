@@ -32,7 +32,8 @@ to automate VPS setup. It helps me to setup my personal VPS in any cloud within
   - fail2ban_exporter
 - **searx** - Privacy-respecting metasearch engine
 - **invidious** - An alternative front-end to YouTube
-- **OwnTracks** - An open-source location companion.
+- **OwnTracks** - An open-source location companion
+- **Radicale** - Free and Open-Source CalDAV and CardDAV Server
 
 ## How to run?
 
@@ -93,6 +94,7 @@ vagrant halt
     - searx
     - invidious
     - owntracks
+    - radicale
   ```
 
 ## Have a query?

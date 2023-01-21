@@ -1,0 +1,70 @@
+---
+# tasks file for radicale
+- name: Run whoami without become.
+  command: whoami
+  changed_when: false
+  become: false
+  register: whoami
+
+- name: Set variables
+  set_fact:
+    login_user: "{{ whoami.stdout }}"
+
+- name: ensure {{radicale_domain}} directory exists
+  file:
+    path: "/var/www/html/{{radicale_domain}}"
+    state: directory
+    owner: "{{login_user}}"
+    group: "{{login_user}}"
+
+- name: Copy .env file
+  become: false
+  template:
+    src: .env.j2
+    dest: "/var/www/html/{{radicale_domain}}/.env"
+    mode: "0644"
+
+- name: Copy docker-compose
+  become: false
+  template:
+    src: docker-compose.yaml.j2
+    dest: "/var/www/html/{{radicale_domain}}/docker-compose.yaml"
+    mode: "0644"
+
+- name: Ensure {{radicale_domain}} file exists for nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{radicale_domain}}
+    mode: "0644"
+  vars:
+    is_local: true
+
+- name: Enable {{radicale_domain}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{radicale_domain}}
+    dest: /etc/nginx/sites-enabled/{{radicale_domain}}
+    state: link
+  notify: Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{radicale_domain}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ radicale_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: not is_local
+
+- name: Ensure {{radicale_domain}} file exists for nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{radicale_domain}}
+    mode: "0644"
+
+- name: Create radicale systemd service unit
+  template:
+    src: radicale.service.j2
+    dest: /etc/systemd/system/radicale.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart radicale

@@ -1,0 +1,7 @@
+---
+# defaults file for invidious
+radicale_port: 3008
+radicale_domain: localhost
+radicale_enable_basic_auth: false
+radicale_user: setme
+radicale_pass: setme

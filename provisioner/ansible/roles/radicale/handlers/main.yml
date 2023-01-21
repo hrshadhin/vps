@@ -1,0 +1,13 @@
+---
+# handlers file for invidious
+- name: Restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+
+- name: Restart radicale
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: radicale
+    state: restarted

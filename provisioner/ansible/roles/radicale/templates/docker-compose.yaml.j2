@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    image: cupcakearmy/radicale:1
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data
+    ports:
+      - {{radicale_port}}:5232

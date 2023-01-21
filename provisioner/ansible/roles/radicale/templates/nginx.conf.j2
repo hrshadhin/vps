@@ -1,0 +1,75 @@
+upstream radicale {
+	server	127.0.0.1:{{radicale_port}};
+	keepalive 64;
+}
+
+{% if not is_local %}
+server {
+	if ($host = {{radicale_domain}}) {
+		return 301 https://$host$request_uri;
+	}
+
+	listen 80;
+	server_name {{radicale_domain}};
+	return 404;
+}
+{% endif %}
+
+server {
+	##
+	# Basic Settings
+	#
+{% if not is_local %}
+	listen 443 ssl;
+{% else %}
+	listen 80;
+{% endif %}
+	server_name {{radicale_domain}};
+
+	root /var/www/html/{{radicale_domain}};
+	index index.html;
+
+{% if not is_local %}
+	include /etc/nginx/snippets/headers.conf;	
+	include /etc/nginx/snippets/cloud-flare-ips.conf;
+
+	##
+	# SSL Settings
+	##
+	ssl_certificate /etc/letsencrypt/live/{{radicale_domain}}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{radicale_domain}}/privkey.pem;
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+{% endif %}
+	##
+	# Path & Error Settings
+	##
+	location / {
+{% if radicale_enable_basic_auth %}
+		auth_basic "Who are you?";
+		auth_basic_user_file /etc/nginx/.htpasswd;
+{% endif %}
+		proxy_http_version 1.1;
+		proxy_set_header Connection ""; 
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_pass http://radicale;
+	}
+
+	##
+	# Logging Settings
+	##
+	access_log  /var/log/nginx/{{radicale_domain}}_access.log;
+	error_log   /var/log/nginx/{{radicale_domain}}_error.log;	
+	
+	location  /robots.txt {
+		access_log off;
+	}
+	
+	location ~ /favicon.png {
+		access_log off;
+	}
+	
+}
