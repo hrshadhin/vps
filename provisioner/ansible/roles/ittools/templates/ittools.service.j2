@@ -1,0 +1,17 @@
+[Unit]
+Description=it tools service
+Requires=docker.service
+After=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=on-failure
+StartLimitInterval=60
+StartLimitBurst=3
+
+WorkingDirectory=/var/www/html/{{it_tools_domain}}
+ExecStart=/usr/local/bin/docker-compose up --remove-orphans
+ExecStop=/usr/local/bin/docker-compose down
+
+[Install]
+WantedBy=multi-user.target

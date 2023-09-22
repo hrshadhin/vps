@@ -1,0 +1,30 @@
+---
+# tasks file for mailbox
+- name: Ensure {{mail_domain}} file exists for nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{mail_domain}}
+    mode: "0644"
+  vars:
+    is_local: true
+
+- name: Enable {{mail_domain}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{mail_domain}}
+    dest: /etc/nginx/sites-enabled/{{mail_domain}}
+    state: link
+  notify: Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{mail_domain}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ mail_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: not is_local
+
+- name: Ensure {{mail_domain}} file exists for nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{mail_domain}}
+    mode: "0644"
+  notify: Restart nginx

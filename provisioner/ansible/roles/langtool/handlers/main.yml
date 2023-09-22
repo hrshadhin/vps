@@ -1,0 +1,13 @@
+---
+# handlers file for langtool
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Restart langtool
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: langtool
+    state: restarted

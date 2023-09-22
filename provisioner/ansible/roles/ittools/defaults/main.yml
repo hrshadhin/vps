@@ -1,0 +1,4 @@
+---
+# defaults file for it-tools
+it_tools_port: 3009
+it_tools_domain: localhost

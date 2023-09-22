@@ -34,6 +34,8 @@ to automate VPS setup. It helps me to setup my personal VPS in any cloud within
 - **invidious** - An alternative front-end to YouTube
 - **OwnTracks** - An open-source location companion
 - **Radicale** - Free and Open-Source CalDAV and CardDAV Server
+- **ittools** - A swiss army knife for a IT people
+- **langtool** - An alternative to Grammarly
 
 ## How to run?
 

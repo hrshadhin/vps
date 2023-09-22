@@ -1,0 +1,6 @@
+---
+# handlers file for mailbox
+- name: Restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted

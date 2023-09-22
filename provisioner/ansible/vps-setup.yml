@@ -29,6 +29,9 @@
     - monitoring
     - owntracks
     - radicale
+    - ittools
+    - langtool
+    - mailbox # incomplete
 
   tasks:
     - name: Setup ad-block list update hosts git automation

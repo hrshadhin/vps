@@ -1,0 +1,5 @@
+---
+# defaults file for langtool
+lang_tool_port: 3010
+lang_tool_domain: localhost
+lang_tool_enable_basic_auth: false

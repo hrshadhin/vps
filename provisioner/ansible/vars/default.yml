@@ -372,3 +372,15 @@ radicale_domain: "{{ lookup('env', 'RADICALE_DOMAIN') | default('setme', True) }
 radicale_enable_basic_auth: false
 radicale_user: "{{ lookup('env', 'RADICALE_USER') | default('setme', True) }}"
 radicale_pass: "{{ lookup('env', 'RADICALE_PASS') | default('setme', True) }}"
+
+# IT-Tools
+it_tools_port: 3009
+it_tools_domain: "{{ lookup('env', 'IT_TOOLS_DOMAIN') | default('setme', True) }}"
+
+# LanguageTool
+lang_tool_port: 3010
+lang_tool_domain: "{{ lookup('env', 'LANG_TOOL_DOMAIN') | default('setme', True) }}"
+lang_tool_enable_basic_auth: false
+
+# Mailbox
+mail_domain: "{{ lookup('env', 'MAIL_DOMAIN') | default('setme', True) }}"

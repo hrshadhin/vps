@@ -1,0 +1,71 @@
+---
+# tasks file for langtool
+- name: Run whoami without become.
+  command: whoami
+  changed_when: false
+  become: false
+  register: whoami
+
+- name: Set variables
+  set_fact:
+    login_user: "{{ whoami.stdout }}"
+
+- name: ensure {{lang_tool_domain}} directory exists
+  file:
+    path: "/var/www/html/{{lang_tool_domain}}"
+    state: directory
+    owner: "{{login_user}}"
+    group: "{{login_user}}"
+
+- name: ensure ngrams directory exists
+  file:
+    path: "/var/www/html/{{lang_tool_domain}}/ngrams"
+    state: directory
+    owner: "{{login_user}}"
+    group: "{{login_user}}"
+
+- name: Copy docker-compose
+  become: false
+  template:
+    src: docker-compose.yaml.j2
+    dest: "/var/www/html/{{lang_tool_domain}}/docker-compose.yaml"
+    mode: "0644"
+
+- name: Ensure {{lang_tool_domain}} file exists for nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{lang_tool_domain}}
+    mode: "0644"
+  vars:
+    is_local: true
+
+- name: Enable {{lang_tool_domain}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{lang_tool_domain}}
+    dest: /etc/nginx/sites-enabled/{{lang_tool_domain}}
+    state: link
+  notify: Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{lang_tool_domain}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ lang_tool_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: not is_local
+
+- name: Ensure {{lang_tool_domain}} file exists for nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{lang_tool_domain}}
+    mode: "0644"
+  notify: Restart nginx
+
+- name: Create langtool systemd service unit
+  template:
+    src: langtool.service.j2
+    dest: /etc/systemd/system/langtool.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart langtool

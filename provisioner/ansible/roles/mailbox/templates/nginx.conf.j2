@@ -1,0 +1,54 @@
+{% if not is_local %}
+server {
+	if ($host = {{mail_domain}}) {
+		return 301 https://$host$request_uri;
+	}
+
+	listen 80;
+	server_name {{mail_domain}};
+	return 404;
+}
+{% endif %}
+
+server {
+	##
+	# Basic Settings
+	#
+{% if not is_local %}
+	listen 443 ssl;
+{% else %}
+	listen 80;
+{% endif %}
+	server_name {{mail_domain}};
+
+	root /var/www/html/{{mail_domain}};
+	index index.html;
+
+{% if not is_local %}
+	include /etc/nginx/snippets/headers.conf;	
+	include /etc/nginx/snippets/cloud-flare-ips.conf;
+
+	##
+	# SSL Settings
+	##
+	ssl_certificate /etc/letsencrypt/live/{{mail_domain}}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{mail_domain}}/privkey.pem;
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+{% endif %}
+
+	##
+	# Logging Settings
+	##
+	access_log  /var/log/nginx/{{mail_domain}}_access.log;
+	error_log   /var/log/nginx/{{mail_domain}}_error.log;	
+	
+	location  /robots.txt {
+		access_log off;
+	}
+	
+	location ~ /favicon.png {
+		access_log off;
+	}
+	
+}

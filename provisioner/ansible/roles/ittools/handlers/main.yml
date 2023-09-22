@@ -1,0 +1,13 @@
+---
+# handlers file for it-tools
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Restart ittools
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: ittools
+    state: restarted
