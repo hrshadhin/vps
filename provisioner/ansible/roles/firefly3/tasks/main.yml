@@ -3,9 +3,17 @@
 - name: Install dependency packages
   apt:
     name: language-pack-nl-base
+  when: not firefly3_update
 
 - name: Generate locale
   shell: locale-gen
+  when: not firefly3_update
+
+- name: "Delete {{firefly3_domain}} directory"
+  file:
+    path: "/var/www/html/{{firefly3_domain}}"
+    state: absent
+  when: firefly3_update
 
 - name: "Ensure {{firefly3_domain}} directory exists"
   file:
@@ -16,42 +24,55 @@
     state: directory
     recurse: true
 
-- name: Check if fire fly iii already exists.
+- name: Check if firefly III already exists.
   stat:
     path: "/var/www/html/{{firefly3_domain}}/composer.json"
   register: firefly3_composer_json
 
-- name: Install fire fly III
+- name: Install firefly III
   become_user: www-data
   composer:
     command: create-project
-    arguments: "grumpydictator/firefly-iii . {{firefly3_version}}"
+    arguments: "grumpydictator/firefly-iii --no-dev --prefer-dist . {{firefly3_version}}"
     working_dir: "/var/www/html/{{firefly3_domain}}"
     prefer_dist: yes
   when: not firefly3_composer_json.stat.exists
 
 - name: Copy .env file
+  become_user: www-data
   template:
     src: .env.j2
     dest: "/var/www/html/{{firefly3_domain}}/.env"
     mode: "0644"
 
-- name: Create robots.txt
-  copy:
-    content: "User-agent: *\nDisallow: /\n"
-    dest: "/var/www/html/{{firefly3_domain}}/robots.txt"
-
 - name: Upgrade DB changes
+  become_user: www-data
+  template:
   shell: php artisan firefly-iii:upgrade-database
+  args:
+    chdir: "/var/www/html/{{firefly3_domain}}"
+
+- name: correct-database
+  become_user: www-data
+  template:
+  shell: php artisan firefly-iii:correct-database
+  args:
+    chdir: "/var/www/html/{{firefly3_domain}}"
+
+- name: report-integrity
+  become_user: www-data
+  template:
+  shell: php artisan firefly-iii:report-integrity
   args:
     chdir: "/var/www/html/{{firefly3_domain}}"
 
 - name: Ensure {{firefly3_domain}} file exists for nginx
   template:
-    src: nginx_http.conf.j2
+    src: nginx.conf.j2
     dest: /etc/nginx/sites-available/{{firefly3_domain}}
     mode: "0644"
   notify: Restart nginx
+  when: not firefly3_update
 
 - name: Enable {{firefly3_domain}} nginx config
   file:
@@ -59,17 +80,17 @@
     dest: /etc/nginx/sites-enabled/{{firefly3_domain}}
     state: link
   notify: Restart nginx
+  when: not firefly3_update
 
 - name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{firefly3_domain}}
   command: "certbot --{{ certbot_plugin }} -d  {{ firefly3_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
-  when: is_local is defined and not is_local
+  when: enable_ssl and not firefly3_update
 
 - name: Copy nginx config
   template:
     src: nginx.conf.j2
     dest: /etc/nginx/sites-available/{{firefly3_domain}}
     mode: "0644"
-  when: is_local is defined and not is_local
   notify:
     - Restart nginx
 

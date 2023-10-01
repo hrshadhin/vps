@@ -97,6 +97,8 @@ vagrant halt
     - invidious
     - owntracks
     - radicale
+    - ittools
+    - langtool
   ```
 
 ## Have a query?

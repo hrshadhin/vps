@@ -1,29 +1,29 @@
 ---
 # tasks file for php
-- name: Add php ppa:ondrej/php
+- name: Adding PHP PPA
   apt_repository:
     repo: "ppa:ondrej/php"
     state: present
 
-- name: "Install php{{php_version}}"
+- name: "Installing PHP {{php_version}}"
   apt:
     name: "php{{php_version}}"
     update_cache: true
     state: latest
 
-- name: "Install php{{php_version}}-fpm"
+- name: "Installing PHP {{php_version}} fpm"
   apt:
     name: "php{{php_version}}-fpm"
     state: latest
-  when: php_install_fpm is defined and php_install_fpm
+  when: php_install_fpm
 
 - name: "Restart php{{php_version}}-fpm"
   service:
     name: "php{{php_version}}-fpm"
     state: restarted
-  when: php_install_fpm is defined and php_install_fpm
+  when: php_install_fpm
 
-- name: "Install php extra packages"
+- name: "Installing PHP {{php_version}} extra packages"
   apt:
     name: "{{ [prefix] | product(php_extra_packages) | map('join')}}"
     update_cache: true
@@ -31,7 +31,34 @@
   vars:
     prefix: "php{{php_version}}-"
 
-- name: Install composer
+- name: "Removing libapache2-mod-php{{php_version}}"
+  apt:
+    name: "libapache2-mod-php{{php_version}}"
+    update_cache: true
+    state: absent
+  when: php_install_fpm
+
+- name: Delete old composer
+  file:
+    path: /usr/local/bin/composer
+    state: absent
+  when: php_update_composer
+
+- name: Installing composer
   shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
   args:
     creates: /usr/local/bin/composer
+
+- block:
+    - name: "Removing PHP version {{php_remove_old_version}}"
+      apt:
+        name: "php{{php_remove_old_version}}"
+        state: absent
+    - name: "Removing PHP {{php_remove_old_version}} extra packages"
+      apt:
+        name: "{{ [prefix] | product(php_extra_packages) | map('join')}}"
+        update_cache: true
+        state: absent
+      vars:
+        prefix: "php{{php_remove_old_version}}-"
+  when: php_remove_old_version != ""

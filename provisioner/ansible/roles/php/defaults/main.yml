@@ -1,7 +1,9 @@
 ---
 # defaults file for php
-php_version: 8.0
+php_version: 8.2
 php_install_fpm: true
+php_update_composer: false
+php_remove_old_version: ""
 php_extra_packages:
   - common
   - bcmath

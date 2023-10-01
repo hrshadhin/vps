@@ -1,3 +1,4 @@
+{% if enable_ssl %}
 server {
 	if ($host = {{firefly3_domain}}) {
 		return 301 https://$host$request_uri;
@@ -7,17 +8,23 @@ server {
 	server_name {{firefly3_domain}};
 	return 404;
 }
+{% endif %}
 
 server {
 	##
 	# Basic Settings
 	#
+{% if enable_ssl %}
 	listen 443 ssl;
+{% else %}
+	listen 80;
+{% endif %}
 	server_name {{firefly3_domain}};
 
 	root /var/www/html/{{firefly3_domain}}/public;
 	index index.php;
 
+{% if enable_ssl %}
 	include /etc/nginx/snippets/headers.conf;	
 	include /etc/nginx/snippets/cloud-flare-ips.conf;
 
@@ -28,7 +35,7 @@ server {
 	ssl_certificate_key /etc/letsencrypt/live/{{firefly3_domain}}/privkey.pem;
 	include /etc/letsencrypt/options-ssl-nginx.conf;
 	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-
+{% endif %}
 	##
 	# Path & Error Settings
 	##
@@ -37,7 +44,7 @@ server {
 	}
 
 	location = /favicon.ico { access_log off; log_not_found off; }
-	location = /robots.txt  { access_log off; log_not_found off; }
+	location = /robots.txt  { access_log off; log_not_found off; add_header Content-Type text/plain; return 200 "User-agent: *\nDisallow: /\n";}
 	location ~ /\.ht { deny all; }
 
 	error_page 404 /index.php;

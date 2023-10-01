@@ -1,6 +1,7 @@
 ---
 # defaults file for firefly3
-firefly3_version: 5.6.4
+firefly3_update: false
+firefly3_version: 6.0.26
 firefly3_site_owner: dev@setme
 firefly3_tz: Asia/Dhaka
 
@@ -21,4 +22,4 @@ firefly3_smtp_encryption: "tls"
 firefly3_app_name: FireflyIII
 firefly3_domain: "localhost:8000"
 firefly3_app_url: "https://{{firefly3_domain}}"
-firefly3_app_key: something_every_storng_key_here
+firefly3_app_key: something_very_storng_key_here

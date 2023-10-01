@@ -1,6 +1,8 @@
 # Global
 is_local: false
 setup_hosts_git: false
+enable_ssl: true
+do_update: true
 
 # Basic
 sysadmin_email: "{{ lookup('env', 'SYSTEMADMIN_EMAIL') | default('setme', True) }}"
@@ -140,7 +142,9 @@ certbot_plugin: nginx
 certbot_mail_address: "{{sysadmin_email}}"
 
 # php
-php_version: 8.1
+php_version: 8.2
+php_update_composer: true
+php_remove_old_version: ""
 
 # bitwarden
 vaultwarden_version: 1.25.2
@@ -175,7 +179,8 @@ shiori_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('setme', True) }
 shiori_db_name: archive
 
 # finance
-firefly3_version: 5.7.12
+firefly3_update: "{{ do_update }}"
+firefly3_version: 6.0.26
 firefly3_site_owner: "{{sysadmin_email}}"
 firefly3_tz: Asia/Dhaka
 
