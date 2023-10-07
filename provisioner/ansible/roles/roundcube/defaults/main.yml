@@ -1,0 +1,14 @@
+---
+# defaults file for roundcube
+roundcube_update: false
+roundcube_product_name: Roundcube Webmail
+roundcube_tz: Asia/Dhaka
+roundcube_version: 1.6.3
+roundcube_enable_installer: false
+roundcube_des_key: super_sec_key_here
+roundcube_plugins: ["archive", "filters", "zipdownload"]
+roundcube_db_type: pgsql
+roundcube_db_dsnw: setme
+roundcube_log_logins: false
+roundcube_imap_host: setme
+roundcube_smtp_host: setme

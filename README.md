@@ -14,6 +14,7 @@ to automate VPS setup. It helps me to setup my personal VPS in any cloud within
 - **redis** - Redis server
 - **nginx** - Nginx web server
 - **php** - PHP setup for LEMP stack
+- **roundcube** -  The Roundcube Webmail suite
 - **vaultwarden** - Password manager
 - **websites** - Static websites configuration for nginx
 - **shiori** - Bookmarks manager
@@ -82,6 +83,7 @@ vagrant halt
     - redis
     - nginx
     - php
+    - roundcube
     - vaultwarden
     - websites
     - shiori

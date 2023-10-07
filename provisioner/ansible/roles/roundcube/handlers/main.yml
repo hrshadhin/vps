@@ -1,5 +1,5 @@
 ---
-# handlers file for firefly3
+# handlers file for roundcube
 - name: Restart nginx
   service:
     name: nginx

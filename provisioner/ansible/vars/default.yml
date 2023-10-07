@@ -67,17 +67,42 @@ redis_bind_interface: "127.0.0.1 {{docker_host_ip}}"
 
 # Postgresql
 pg_listen_addresses: "localhost,{{docker_host_ip}}"
-pg_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
-pg_user_password: "{{ lookup('env', 'PG_USER_PASSWORD') | default('nobody', True) }}"
-pg_database_names:
-  - dnote
-  - vaultwarden
-  - honey
-  - focalboard
-  - archive
-  - invidious
-  - owntracks
+pg_user: "{{ lookup('env', 'PG_USER') }}"
+pg_user_password: "{{ lookup('env', 'PG_USER_PASSWORD') }}"
+pg_rc_user: "{{ lookup('env', 'PG_RC_USER') }}"
+pg_rc_user_password: "{{ lookup('env', 'PG_RC_USER_PASSWORD') }}"
+pg_users:
+  pgu:
+    user: "{{ pg_user }}"
+    pass: "{{ pg_user_password }}"
+  rcu:
+    user: "{{ pg_rc_user }}"
+    pass: "{{ pg_rc_user_password }}"
+pg_databases:
+  roundcube:
+    user: "{{pg_rc_user}}"
+  dnote:
+    user: "{{pg_user}}"
+  vaultwarden:
+    user: "{{pg_user}}"
+  honey:
+    user: "{{pg_user}}"
+  focalboard:
+    user: "{{pg_user}}"
+  archive:
+    user: "{{pg_user}}"
+  invidious:
+    user: "{{pg_user}}"
+  owntracks:
+    user: "{{pg_user}}"
 pq_hba_mapping:
+  - {
+      type: "host",
+      database: "roundcube",
+      user: "{{pg_rc_user}}",
+      address: "127.0.0.1/32",
+      method: "md5",
+    }
   - {
       type: "host",
       database: "dnote",
@@ -145,6 +170,24 @@ certbot_mail_address: "{{sysadmin_email}}"
 php_version: 8.2
 php_update_composer: true
 php_remove_old_version: ""
+
+# Mailbox
+mail_domain: "{{ lookup('env', 'MAIL_DOMAIN') | default('setme', True) }}"
+
+# WebMail
+roundcube_enable_basic_auth: true
+roundcube_update: true
+roundcube_version: 1.6.3
+roundcube_domain: "{{ lookup('env', 'WEBMAIL_DOMAIN') | default('setme', True) }}"
+roundcube_product_name: xMail
+roundcube_enable_installer: false
+roundcube_des_key: "{{ lookup('env', 'ROUNDKUBE_DES_KEY') | default('super_sec_key_here', True) }}"
+# roundcube_plugins: []
+roundcube_db_type: pgsql
+roundcube_db_dsnw: "pgsql://{{pg_rc_user}}:{{pg_rc_user_password}}@localhost/roundcube"
+roundcube_log_logins: true
+roundcube_imap_host: "{{ lookup('env', 'ROUNDKUBE_IMAP_HOST') | default('localhost', True) }}"
+roundcube_smtp_host: "{{ lookup('env', 'ROUNDKUBE_SMTP_HOST') | default('localhost', True) }}"
 
 # bitwarden
 vaultwarden_version: 1.25.2
@@ -386,6 +429,3 @@ it_tools_domain: "{{ lookup('env', 'IT_TOOLS_DOMAIN') | default('setme', True) }
 lang_tool_port: 3010
 lang_tool_domain: "{{ lookup('env', 'LANG_TOOL_DOMAIN') | default('setme', True) }}"
 lang_tool_enable_basic_auth: false
-
-# Mailbox
-mail_domain: "{{ lookup('env', 'MAIL_DOMAIN') | default('setme', True) }}"

@@ -14,6 +14,8 @@
     - redis
     - nginx
     - php
+    - mailbox # incomplete
+    - roundcube
     - websites
     - vaultwarden
     - shiori
@@ -31,7 +33,6 @@
     - radicale
     - ittools
     - langtool
-    - mailbox # incomplete
 
   tasks:
     - name: Setup ad-block list update hosts git automation

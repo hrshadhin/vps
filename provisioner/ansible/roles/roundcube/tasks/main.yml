@@ -1,0 +1,144 @@
+---
+# tasks file for roundcube
+- name: "Delete {{roundcube_domain}} directory"
+  file:
+    path: "/var/www/html/{{roundcube_domain}}"
+    state: absent
+  when: roundcube_update
+
+- name: "Ensure {{roundcube_domain}} directory exists"
+  file:
+    path: "/var/www/html/{{roundcube_domain}}"
+    owner: www-data
+    group: www-data
+    mode: "0755"
+    state: directory
+    recurse: true
+
+- name: Check if roundcube already exists.
+  stat:
+    path: "/var/www/html/{{roundcube_domain}}/composer.json-dist"
+  register: roundcube_composer_json
+
+- block:
+    - name: Download roundcube src
+      become: false
+      get_url:
+        url: "https://github.com/roundcube/roundcubemail/releases/download/{{roundcube_version}}/roundcubemail-{{roundcube_version}}-complete.tar.gz"
+        dest: "/tmp/roundcubemail-{{roundcube_version}}-complete.tar.gz"
+      register: _download_archive
+      until: _download_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: Download roundcube src verify key
+      become: false
+      get_url:
+        url: "https://github.com/roundcube/roundcubemail/releases/download/{{roundcube_version}}/roundcubemail-{{roundcube_version}}-complete.tar.gz.asc"
+        dest: "/tmp/roundcubemail-{{roundcube_version}}-complete.tar.gz.asc"
+      register: _download_archive_key
+      until: _download_archive_key is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: Download roundcube public key
+      become: false
+      get_url:
+        url: "https://roundcube.net/download/pubkey.asc"
+        dest: "/tmp/roundcubemail-pubkey.asc"
+      register: _download_pub_key
+      until: _download_pub_key is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: Import roundcube GPG key
+      become: false
+      command: "gpg --import /tmp/roundcubemail-pubkey.asc"
+
+    - name: Vefiry archive file with GPG key
+      become: false
+      command: "gpg --verify roundcubemail-{{roundcube_version}}-complete.tar.gz.asc roundcubemail-{{roundcube_version}}-complete.tar.gz"
+      args:
+        chdir: "/tmp"
+
+    - name: Unpack archive file
+      become: true
+      become_user: www-data
+      unarchive:
+        src: "/tmp/roundcubemail-{{roundcube_version}}-complete.tar.gz"
+        dest: "/var/www/html/{{roundcube_domain}}"
+        extra_opts: [--strip-components=1]
+        remote_src: yes
+  when: not roundcube_composer_json.stat.exists
+
+- name: Copy config.inc.php
+  become_user: www-data
+  template:
+    src: config.inc.php.j2
+    dest: "/var/www/html/{{roundcube_domain}}/config/config.inc.php"
+    mode: "0644"
+
+- name: Remove installer
+  become: true
+  file:
+    path: "/var/www/html/{{roundcube_domain}}/installer"
+    state: absent
+
+- name: Copy user.ini
+  become_user: www-data
+  copy:
+    src: .user.ini
+    dest: "/var/www/html/{{roundcube_domain}}/.user.ini"
+    mode: "0644"
+
+- name: Init database
+  become: true
+  become_user: www-data
+  command: "./bin/initdb.sh --dir=SQL"
+  args:
+    chdir: "/var/www/html/{{roundcube_domain}}"
+  when: not roundcube_update
+
+- name: Update database
+  become: true
+  become_user: www-data
+  command: "./bin/updatedb.sh --package=roundcube --dir=SQL"
+  args:
+    chdir: "/var/www/html/{{roundcube_domain}}"
+  when: roundcube_update
+
+- name: Ensure {{roundcube_domain}} file exists for nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{roundcube_domain}}
+    mode: "0644"
+  vars:
+    enable_ssl: false
+  notify: Restart nginx
+  when: not roundcube_update
+
+- name: Enable {{roundcube_domain}} nginx config
+  file:
+    src: /etc/nginx/sites-available/{{roundcube_domain}}
+    dest: /etc/nginx/sites-enabled/{{roundcube_domain}}
+    state: link
+  notify: Restart nginx
+  when: not roundcube_update
+
+- name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{roundcube_domain}}
+  command: "certbot --{{ certbot_plugin }} -d  {{ roundcube_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: enable_ssl and not roundcube_update
+
+- name: Copy nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{roundcube_domain}}
+    mode: "0644"
+  notify:
+    - Restart nginx
+
+- name: Flush all handlers at this point
+  meta: flush_handlers

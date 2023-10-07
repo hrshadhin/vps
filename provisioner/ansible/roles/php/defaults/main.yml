@@ -17,3 +17,5 @@ php_extra_packages:
   - curl
   - ldap
   - xml
+  - imagick
+  - pspell
