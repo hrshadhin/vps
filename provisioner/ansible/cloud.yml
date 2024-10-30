@@ -1,5 +1,5 @@
 ---
-- hosts: VPS
+- hosts: CLOUD
   name: Provision VPS(s)
   gather_facts: true
   become: true
@@ -9,17 +9,16 @@
     - base
     - zsh
     - docker
+    - wireguard
     - postgresql
     - mariadb
     - redis
     - nginx
     - php
-    - mailbox # incomplete
-    - roundcube
+    - firefly3
     - websites
     - vaultwarden
     - shiori
-    - firefly3
     - dnote
     - focalboard
     - monica
@@ -27,7 +26,6 @@
     - invidious
     - backup
     - blocky
-    - wireguard
     - monitoring
     - owntracks
     - radicale

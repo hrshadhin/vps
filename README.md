@@ -69,8 +69,8 @@ vagrant halt
 - Run ansible playbook
 
   ```bash
-  ./ansible-playbook.sh vps-setup.yml --syntax-check
-  ./ansible-playbook.sh vps-setup.yml
+  ./ansible-playbook.sh cloud.yml --syntax-check
+  ./ansible-playbook.sh postbox.yml
   ```
 
 - @nsible roles

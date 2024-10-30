@@ -2,7 +2,6 @@
 is_local: false
 setup_hosts_git: false
 enable_ssl: true
-do_update: true
 
 # Basic
 sysadmin_email: "{{ lookup('env', 'SYSTEMADMIN_EMAIL') | default('setme', True) }}"
@@ -17,7 +16,7 @@ ssh_pub_key_path: ~/.ssh/id_rsa_vp5.pub
 
 # zsh
 zsh_antigen_version: v2.2.3
-zsh_fzf_version: 0.34.0
+zsh_fzf_version: 0.55.0
 
 zsh_antigen_bundles:
   - git
@@ -36,13 +35,6 @@ zsh_aliases:
   - { alias: "...", action: "cd ../.." }
   - { alias: "....", action: "cd ../../.." }
 
-# Docker
-docker_host_access_enabled: true
-docker_host_domain: host.docker.internal
-docker_host_ip: 172.17.0.1
-install_docker_compose: true
-docker_compose_version: v2.11.2
-
 # Firewall
 ssh_port: "{{ lookup('env', 'SSH_PORT') | default('22', True) }}"
 ssh_allowed_from: 0.0.0.0/0
@@ -58,9 +50,36 @@ ufw_rules:
     }
   - { rule: "allow", port: 80, proto: "tcp", src: "any" }
   - { rule: "allow", port: 443, proto: "tcp", src: "any" }
+  # - { rule: "allow", port: 25, proto: "tcp", src: "any" }
+  # - { rule: "allow", port: 465, proto: "tcp", src: "any" }
+  # - { rule: "allow", port: 587, proto: "tcp", src: "any" }
+  # - { rule: "allow", port: 993, proto: "tcp", src: "any" }
   - { rule: "allow", port: 5432, proto: "tcp", src: "{{docker_host_ip}}/16" }
   - { rule: "allow", port: 6379, proto: "tcp", src: "{{docker_host_ip}}/16" }
-  # - { rule: "allow", port: 53, proto: "any", src: "{{my_ip_1}}" }
+  # # - { rule: "allow", port: 53, proto: "any", src: "{{my_ip_1}}" }
+  # - { rule: "allow", port: 3478, proto: "tcp", src: "any" }
+  # - { rule: "allow", port: 3478, proto: "udp", src: "any" }
+  # - { rule: "allow", port: 5349, proto: "tcp", src: "any" }
+  # - { rule: "allow", port: 5349, proto: "udp", src: "any" }
+  # - { rule: "allow", port: "49152:65535", proto: "udp", src: "any" }
+
+## Wireguard
+wg_server_public_ip: "{{ lookup('env', 'WG_LISTEN_IP') | default('', True) }}"
+wg_listen_port: "{{ lookup('env', 'WG_LISTEN_PORT') | default('51820', True) }}"
+wg_user_list:
+  hrsd: { username: "hrsd", private_ip: "10.8.0.2", remove: no }
+  hrsl: { username: "hrsl", private_ip: "10.8.0.3", remove: no }
+  hrsp: { username: "hrsp", private_ip: "10.8.0.4", remove: no }
+  hrsh: { username: "hrsh", private_ip: "10.8.0.5", remove: no }
+  lzph: { username: "lzph", private_ip: "10.8.0.6", remove: no }
+  exta: { username: "exta", private_ip: "10.8.0.7", remove: no }
+
+# Docker
+docker_host_access_enabled: true
+docker_host_domain: host.docker.internal
+docker_host_ip: 172.17.0.1
+install_docker_compose: true
+docker_compose_version: v2.29.6
 
 # Redis
 redis_bind_interface: "127.0.0.1 {{docker_host_ip}}"
@@ -71,6 +90,8 @@ pg_user: "{{ lookup('env', 'PG_USER') }}"
 pg_user_password: "{{ lookup('env', 'PG_USER_PASSWORD') }}"
 pg_rc_user: "{{ lookup('env', 'PG_RC_USER') }}"
 pg_rc_user_password: "{{ lookup('env', 'PG_RC_USER_PASSWORD') }}"
+pg_clc_user: "{{ lookup('env', 'PG_CLC_USER') }}"
+pg_clc_user_password: "{{ lookup('env', 'PG_CLC_USER_PASSWORD') }}"
 pg_users:
   pgu:
     user: "{{ pg_user }}"
@@ -78,6 +99,9 @@ pg_users:
   rcu:
     user: "{{ pg_rc_user }}"
     pass: "{{ pg_rc_user_password }}"
+  clcu:
+    user: "{{ pg_clc_user }}"
+    pass: "{{ pg_clc_user_password }}"
 pg_databases:
   roundcube:
     user: "{{pg_rc_user}}"
@@ -95,6 +119,8 @@ pg_databases:
     user: "{{pg_user}}"
   owntracks:
     user: "{{pg_user}}"
+  dendrite:
+    user: "{{pg_clc_user}}"
 pq_hba_mapping:
   - {
       type: "host",
@@ -152,13 +178,24 @@ pq_hba_mapping:
       address: "127.0.0.1/32",
       method: "md5",
     }
+  - {
+      type: "host",
+      database: "dendrite",
+      user: "{{pg_clc_user}}",
+      address: "{{docker_host_ip}}/16",
+      method: "md5",
+    }
 
 # MariaDB
 mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') | default('setme', True) }}"
 mariadb_user: "{{ lookup('env', 'MARIADB_USER') | default('nobody', True) }}"
 mariadb_user_password: "{{ lookup('env', 'MARIADB_USER_PASSWORD') | default('setme', True) }}"
+mariadb_user2: "{{ lookup('env', 'MARIADB_USER_7VAT') | default('nobody', True) }}"
+mariadb_user2_password: "{{ lookup('env', 'MARIADB_USER_7VAT_PASSWORD') | default('setme', True) }}"
 mariadb_database_names:
   - monica
+mariadb_database_names2:
+  - vatconsultant
 
 # nginx
 setup_ssl: true
@@ -167,7 +204,7 @@ certbot_plugin: nginx
 certbot_mail_address: "{{sysadmin_email}}"
 
 # php
-php_version: 8.2
+php_version: 8.3
 php_update_composer: true
 php_remove_old_version: ""
 
@@ -222,10 +259,11 @@ shiori_db_pass: "{{ lookup('env', 'PG_USER_PASSWORD') | default('setme', True) }
 shiori_db_name: archive
 
 # finance
-firefly3_update: "{{ do_update }}"
-firefly3_version: 6.0.26
+firefly3_update: True
+firefly3_version: 6.1.21
 firefly3_site_owner: "{{sysadmin_email}}"
 firefly3_tz: Asia/Dhaka
+firefly3_enable_ssl: True
 
 firefly3_db_type: pgsql
 firefly3_db_user: "{{ lookup('env', 'PG_USER') | default('nobody', True) }}"
@@ -319,16 +357,6 @@ blocky_http_enable: true
 blocky_http_port: 3004
 blocky_behind_proxy: true
 blocky_promeheus_enable: true
-
-## Wireguard
-wg_server_public_ip: "{{ '192.168.60.60' if is_local is defined and is_local else '' }}"
-wg_listen_port: "{{ lookup('env', 'WG_LISTEN_PORT') | default('51820', True) }}"
-wg_user_list:
-  hrsd: { username: "hrsd", private_ip: "10.8.0.2", remove: no }
-  hrsl: { username: "hrsl", private_ip: "10.8.0.3", remove: no }
-  hrsp: { username: "hrsp", private_ip: "10.8.0.4", remove: no }
-  hr01: { username: "hr01", private_ip: "10.8.0.5", remove: no }
-  hl01: { username: "hl01", private_ip: "10.8.0.6", remove: no }
 
 ## Monitoring
 monitoring_download_binary: true

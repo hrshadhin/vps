@@ -1,0 +1,14 @@
+---
+- hosts: POSTBOX
+  name: Provision postbox(s)
+  gather_facts: true
+  become: true
+  vars_files:
+    - vars/default.yml
+  roles:
+    - base
+    - zsh
+    - docker
+    - nginx
+    - mailbox # incomplete
+    - roundcube

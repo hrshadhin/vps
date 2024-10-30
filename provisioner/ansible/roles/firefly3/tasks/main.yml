@@ -29,39 +29,88 @@
     path: "/var/www/html/{{firefly3_domain}}/composer.json"
   register: firefly3_composer_json
 
-- name: Install firefly III
-  become_user: www-data
-  composer:
-    command: create-project
-    arguments: "grumpydictator/firefly-iii --no-dev --prefer-dist . {{firefly3_version}}"
-    working_dir: "/var/www/html/{{firefly3_domain}}"
-    prefer_dist: yes
-  when: not firefly3_composer_json.stat.exists
+- block:
+    - name: Set firefly III archive file name
+      set_fact:
+        ff3_archive_file_name: "FireflyIII-v{{ firefly3_version }}.tar.gz"
+
+    - name: Download firefly III source
+      get_url:
+        url: "https://github.com/firefly-iii/firefly-iii/releases/download/v{{firefly3_version}}/{{ff3_archive_file_name}}"
+        dest: "/tmp/{{ff3_archive_file_name}}"
+      register: _download_archive
+      until: _download_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: Download firefly III source verify key
+      get_url:
+        url: "https://github.com/firefly-iii/firefly-iii/releases/download/v{{firefly3_version}}/{{ff3_archive_file_name}}.sha256"
+        dest: "/tmp/{{ff3_archive_file_name}}.sha256"
+      register: _download_archive_key
+      until: _download_archive_key is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: Vefiry archive file intigrity
+      command: "sha256sum -c {{ff3_archive_file_name}}.sha256"
+      args:
+        chdir: "/tmp"
+
+    - name: Unpack archive file
+      unarchive:
+        src: "/tmp/{{ff3_archive_file_name}}"
+        dest: "/var/www/html/{{firefly3_domain}}"
+        extra_opts: [--strip-components=1]
+        remote_src: yes
+  when: not firefly3_composer_json.stat.exists or firefly3_update
 
 - name: Copy .env file
-  become_user: www-data
   template:
     src: .env.j2
     dest: "/var/www/html/{{firefly3_domain}}/.env"
     mode: "0644"
 
+- name: Ensure {{firefly3_domain}} directory permission for webserver
+  file:
+    path: /var/www/html/{{firefly3_domain}}
+    owner: www-data
+    group: www-data
+    mode: "0755"
+    recurse: yes
+
+- name: Ensure storage directory permission for webserver
+  file:
+    path: /var/www/html/{{firefly3_domain}}/storage
+    owner: www-data
+    group: www-data
+    mode: "0775"
+    recurse: yes
+
+- name: Ensure cache directory permission for webserver
+  file:
+    path: /var/www/html/{{firefly3_domain}}/bootstrap/cache
+    owner: www-data
+    group: www-data
+    mode: "0775"
+    recurse: yes
+
 - name: Upgrade DB changes
   become_user: www-data
-  template:
   shell: php artisan firefly-iii:upgrade-database
   args:
     chdir: "/var/www/html/{{firefly3_domain}}"
 
 - name: correct-database
   become_user: www-data
-  template:
   shell: php artisan firefly-iii:correct-database
   args:
     chdir: "/var/www/html/{{firefly3_domain}}"
 
 - name: report-integrity
   become_user: www-data
-  template:
   shell: php artisan firefly-iii:report-integrity
   args:
     chdir: "/var/www/html/{{firefly3_domain}}"
@@ -71,6 +120,8 @@
     src: nginx.conf.j2
     dest: /etc/nginx/sites-available/{{firefly3_domain}}
     mode: "0644"
+  vars:
+    enable_ssl: False
   notify: Restart nginx
   when: not firefly3_update
 
@@ -84,7 +135,7 @@
 
 - name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{firefly3_domain}}
   command: "certbot --{{ certbot_plugin }} -d  {{ firefly3_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
-  when: enable_ssl and not firefly3_update
+  when: firefly3_enable_ssl and not firefly3_update
 
 - name: Copy nginx config
   template:
@@ -93,6 +144,7 @@
     mode: "0644"
   notify:
     - Restart nginx
+  when: firefly3_enable_ssl and not firefly3_update
 
 - name: Flush all handlers at this point
   meta: flush_handlers

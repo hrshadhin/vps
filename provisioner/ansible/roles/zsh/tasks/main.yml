@@ -10,13 +10,13 @@
       set_fact:
         zsh_user: "{{ whoami.stdout }}"
 
-    - include: install.yml
+    - include_tasks: install.yml
       tags: [zsh, install]
 
-    - include: configure.yml
+    - include_tasks: configure.yml
       tags: [zsh, configure]
 
-    - include: post-install.yml
+    - include_tasks: post-install.yml
       tags: [zsh, install, post_install]
   become: false
 

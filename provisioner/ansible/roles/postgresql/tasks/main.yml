@@ -49,6 +49,7 @@
 
 - name: Configure PostgreSQL host-based authentication
   template: src=pg_hba.conf.j2 dest=/etc/postgresql/{{ pg_version }}/main/pg_hba.conf
+  tags: create-databases
   notify:
     - Restart PostgreSQL
 
@@ -63,7 +64,7 @@
     name: "{{ item.value.user }}"
     password: "{{ item.value.pass }}"
     state: present
-  loop: "{{ lookup('ansible.builtin.dict', pg_users) }}"
+  loop: "{{ lookup('ansible.builtin.dict', pg_users, wantlist=True) }}"
   loop_control:
     label: "{{item.key}}"
   when: pg_users is defined
@@ -72,7 +73,7 @@
 - name: Create some databases
   become_user: postgres
   postgresql_db: "name={{ item.key }} encoding='UTF-8' state=present"
-  loop: "{{ lookup('ansible.builtin.dict', pg_databases) }}"
+  loop: "{{ lookup('ansible.builtin.dict', pg_databases, wantlist=True) }}"
   loop_control:
     label: "{{item.key}}"
   when: pg_databases is defined
@@ -85,7 +86,7 @@
     role: "{{ item.value.user }}"
     objs: ALL_IN_SCHEMA
     privs: ALL
-  loop: "{{ lookup('ansible.builtin.dict', pg_databases) }}"
+  loop: "{{ lookup('ansible.builtin.dict', pg_databases, wantlist=True) }}"
   loop_control:
     label: "{{item.key}}"
   when: pg_databases is defined

@@ -1,9 +1,11 @@
-[VPS]
-ctcloud ansible_host=ctcloud
+[CLOUD]
+cloud ansible_host=cloud
 
+[POSTBOX]
+postbox ansible_host=postbox
 
-[VPS:vars]
+[all:vars]
 ansible_python_interpreter=/usr/bin/python3
 is_local=false
-# ansible_user=root 
+# ansible_user=root
 # ansible_ssh_pass=set_me

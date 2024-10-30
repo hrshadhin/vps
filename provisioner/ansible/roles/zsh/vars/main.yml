@@ -13,10 +13,9 @@ zsh_user_group: "{{ zsh_user }}"
 zsh_antigen_path: "$HOME/.antigen"
 zsh_config: "$HOME/.zshrc"
 zsh_antigen_path_compat: "{{ zsh_antigen_path }}"
-
 zsh_fzf_os: linux
 zsh_fzf_arch: "{{os_arch}}"
-zsh_fzf_dl_base_url: "https://github.com/junegunn/fzf/releases/download/"
+zsh_fzf_dl_base_url: "https://github.com/junegunn/fzf/releases/download/v"
 zsh_fzf_file_name: "fzf-{{ zsh_fzf_version }}-{{ zsh_fzf_os }}_{{ zsh_fzf_arch }}.tar.gz"
 zsh_fzf_url: "{{zsh_fzf_dl_base_url}}{{ zsh_fzf_version }}/{{zsh_fzf_file_name}}"
 zsh_fzf_check_sum_url: "{{zsh_fzf_dl_base_url}}{{ zsh_fzf_version }}/fzf_{{ zsh_fzf_version }}_checksums.txt"
