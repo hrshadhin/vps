@@ -5,3 +5,6 @@
     enabled: true
     name: redis-server
     state: restarted
+
+- name: restart ufw
+  service: name=ufw state=restarted

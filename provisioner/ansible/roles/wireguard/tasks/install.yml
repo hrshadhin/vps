@@ -21,7 +21,14 @@
     reload: yes
   tags: install
 
-- name: Configure ufw rules
+- name: Configure ufw rule
   ufw: "rule=allow port={{ wg_listen_port }} proto=udp src=any"
+  when: is_install_ufw
+  notify:
+    - restart ufw
+
+- name: Configure ufw rule for DNS
+  ufw: "rule=allow port=53 proto=any src=10.8.0.0/8"
+  when: is_install_ufw
   notify:
     - restart ufw

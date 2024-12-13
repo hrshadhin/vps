@@ -1,34 +1,29 @@
-{% if is_local %}
-server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
-
-	server_name _;
-    
-	root /var/www/html;
-	index index.html index.nginx-debian.html;
-}
-{% else %}
 include /etc/nginx/snippets/maps.conf;
 
+{% if enable_ssl %}
 server {
 	if ($host = {{primary_domain}}) {
-        return 301 https://$host$request_uri;
-    }
+		return 301 https://$host$request_uri;
+	}
 
 	listen 80;
-	listen [::]:80 ipv6only=on default_server;
-
+	listen [::]:80 ipv6only=on;
 	server_name {{primary_domain}};
-    return 404;
+	return 404;
 }
+{% endif %}
 
 server {
 	##
 	# Basic Settings
 	#
+{% if enable_ssl %}	
 	listen 443 ssl;
 	listen [::]:443 ssl ipv6only=on;
+{% else %}
+	listen 80;
+	listen [::]:80 ipv6only=on;
+{% endif %}
 	server_name {{primary_domain}};
 
 	root /var/www/html/{{primary_domain}};
@@ -39,6 +34,7 @@ server {
 	include /etc/nginx/snippets/headers.conf;	
 	include /etc/nginx/snippets/cloud-flare-ips.conf;
 
+{% if enable_ssl %}
 	##
 	# SSL Settings
 	##
@@ -46,6 +42,7 @@ server {
 	ssl_certificate_key /etc/letsencrypt/live/{{primary_domain}}/privkey.pem;
 	include /etc/letsencrypt/options-ssl-nginx.conf;
 	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+{% endif %}
 
 	##
 	# Path & Error Settings
@@ -76,7 +73,6 @@ server {
 	location ~ /favicon.png {
 		access_log off;
 	}
-	
 
 	##
 	# Gzip Settings
@@ -84,4 +80,3 @@ server {
 	gzip on;
 	gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
 }
-{% endif %}

@@ -28,3 +28,12 @@
     dest: /etc/nginx/sites-available/{{mail_domain}}
     mode: "0644"
   notify: Restart nginx
+
+- name: Configure ufw rules
+  ufw: rule={{ item.rule }} port={{ item.port }} proto={{ item.proto }} src={{ item.src }}
+  with_items: "{{postbox_ufw_rules}}"
+  notify:
+    - restart ufw
+  when: is_install_ufw and postbox_ufw_rules != []
+  tags:
+    - update_rules

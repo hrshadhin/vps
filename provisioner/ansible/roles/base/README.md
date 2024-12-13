@@ -20,8 +20,8 @@ secondary_user_username:
 secondary_user_password:
 ssh_port:
 ssh_pub_key_path:
-install_fail2ban:
-install_ufw:
+is_install_fail2ban:
+is_install_ufw:
 ufw_rules: []
 ```
 
@@ -51,8 +51,8 @@ ufw_rules: []
       secondary_user_password: Super7secre8
       ssh_port: 456
       ssh_pub_key_path: ssh_pub_key_file_for_seconadary_user
-      install_fail2ban: True
-      install_ufw: True
+      is_install_fail2ban: True
+      is_install_ufw: True
       ufw_rules: []
 ```
 

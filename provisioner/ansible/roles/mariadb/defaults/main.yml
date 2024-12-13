@@ -3,5 +3,9 @@
 mariadb_version: 10.6
 mariadb_allow_remote_connection: false
 mariadb_root_password: toor
-mariadb_user: foobar
-mariadb_user_password: foobar
+# mariadb_users:
+#   wu:
+#     user: <user_name>
+#     pass: <user_password>
+# mariadb_databases:
+#   <db_name>: <db_user_name>

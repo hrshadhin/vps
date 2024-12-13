@@ -76,12 +76,12 @@
     owner: root
     group: root
     mode: "0755"
-  when: install_docker_compose
+  when: docker_compose_install
 
 - name: Install docker-compose python package
   pip:
     name: docker-compose
-  when: install_docker_compose
+  when: docker_compose_install
 
 - name: Reset ssh connection to allow user changes to take affect
   meta: reset_connection

@@ -4,3 +4,6 @@
   ansible.builtin.service:
     name: nginx
     state: restarted
+
+- name: restart ufw
+  service: name=ufw state=restarted

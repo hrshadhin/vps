@@ -1,14 +1,10 @@
 # Global
-is_local: false
 setup_hosts_git: false
-enable_ssl: true
-
 # Basic
 sysadmin_email: "{{ lookup('env', 'SYSTEMADMIN_EMAIL') | default('setme', True) }}"
 gitops_email: "{{ lookup('env', 'GITOPS_EMAL') | default('setme', True) }}"
 gitops_name: H.R. Shadhin
 time_zone: Asia/Dhaka
-
 add_secondary_user: true
 # key empty if want only ssh key based login
 secondary_user_password:
@@ -17,7 +13,6 @@ ssh_pub_key_path: ~/.ssh/id_rsa_vp5.pub
 # zsh
 zsh_antigen_version: v2.2.3
 zsh_fzf_version: 0.55.0
-
 zsh_antigen_bundles:
   - git
   - python
@@ -27,7 +22,6 @@ zsh_antigen_bundles:
   - zsh-users/zsh-autosuggestions
   - unixorn/autoupdate-antigen.zshplugin
   - zsh-users/zsh-syntax-highlighting
-
 zsh_aliases:
   - { alias: "py", action: "python3" }
   - { alias: "dfh", action: "df -h" }
@@ -36,11 +30,11 @@ zsh_aliases:
   - { alias: "....", action: "cd ../../.." }
 
 # Firewall
+is_install_fail2ban: true
+is_install_ufw: true
 ssh_port: "{{ lookup('env', 'SSH_PORT') | default('22', True) }}"
 ssh_allowed_from: 0.0.0.0/0
 my_ip_1: "{{ lookup('env', 'MY_IP_1') | default('0.0.0.0', True) }}"
-install_fail2ban: true
-install_ufw: true
 ufw_rules:
   - {
       rule: "allow",
@@ -48,20 +42,6 @@ ufw_rules:
       proto: "tcp",
       src: '{{ ssh_allowed_from | default("any") }}',
     }
-  - { rule: "allow", port: 80, proto: "tcp", src: "any" }
-  - { rule: "allow", port: 443, proto: "tcp", src: "any" }
-  # - { rule: "allow", port: 25, proto: "tcp", src: "any" }
-  # - { rule: "allow", port: 465, proto: "tcp", src: "any" }
-  # - { rule: "allow", port: 587, proto: "tcp", src: "any" }
-  # - { rule: "allow", port: 993, proto: "tcp", src: "any" }
-  - { rule: "allow", port: 5432, proto: "tcp", src: "{{docker_host_ip}}/16" }
-  - { rule: "allow", port: 6379, proto: "tcp", src: "{{docker_host_ip}}/16" }
-  # # - { rule: "allow", port: 53, proto: "any", src: "{{my_ip_1}}" }
-  # - { rule: "allow", port: 3478, proto: "tcp", src: "any" }
-  # - { rule: "allow", port: 3478, proto: "udp", src: "any" }
-  # - { rule: "allow", port: 5349, proto: "tcp", src: "any" }
-  # - { rule: "allow", port: 5349, proto: "udp", src: "any" }
-  # - { rule: "allow", port: "49152:65535", proto: "udp", src: "any" }
 
 ## Wireguard
 wg_server_public_ip: "{{ lookup('env', 'WG_LISTEN_IP') | default('', True) }}"
@@ -78,7 +58,7 @@ wg_user_list:
 docker_host_access_enabled: true
 docker_host_domain: host.docker.internal
 docker_host_ip: 172.17.0.1
-install_docker_compose: true
+docker_compose_install: true
 docker_compose_version: v2.29.6
 
 # Redis
@@ -122,13 +102,6 @@ pg_databases:
   dendrite:
     user: "{{pg_clc_user}}"
 pq_hba_mapping:
-  - {
-      type: "host",
-      database: "roundcube",
-      user: "{{pg_rc_user}}",
-      address: "127.0.0.1/32",
-      method: "md5",
-    }
   - {
       type: "host",
       database: "dnote",
@@ -185,23 +158,30 @@ pq_hba_mapping:
       address: "{{docker_host_ip}}/16",
       method: "md5",
     }
+  - {
+      type: "host",
+      database: "roundcube",
+      user: "{{pg_rc_user}}",
+      address: "127.0.0.1/32",
+      method: "md5",
+    }
 
 # MariaDB
 mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') | default('setme', True) }}"
-mariadb_user: "{{ lookup('env', 'MARIADB_USER') | default('nobody', True) }}"
-mariadb_user_password: "{{ lookup('env', 'MARIADB_USER_PASSWORD') | default('setme', True) }}"
-mariadb_user2: "{{ lookup('env', 'MARIADB_USER_7VAT') | default('nobody', True) }}"
-mariadb_user2_password: "{{ lookup('env', 'MARIADB_USER_7VAT_PASSWORD') | default('setme', True) }}"
-mariadb_database_names:
-  - monica
-mariadb_database_names2:
-  - vatconsultant
+mariadb_users:
+  wu:
+    user: "{{ lookup('env', 'MARIADB_USER') | default('nobody', True) }}"
+    pass: "{{ lookup('env', 'MARIADB_USER_PASSWORD') | default('setme', True) }}"
+  vu:
+    user: "{{ lookup('env', 'MARIADB_USER_7VAT') | default('nobody', True) }}"
+    pass: "{{ lookup('env', 'MARIADB_USER_7VAT_PASSWORD') | default('setme', True) }}"
+mariadb_databases:
+  monica: "{{mariadb_users.wu.user}}"
+  vatconsultant:  "{{mariadb_users.vu.user}}"
 
 # nginx
-setup_ssl: true
-primary_domain: "{{ lookup('env', 'PRIMARY_DOMAIN') | default('example.com', True) }}"
-certbot_plugin: nginx
-certbot_mail_address: "{{sysadmin_email}}"
+ng_setup_ssl: true
+ng_certbot_mail_address: "{{sysadmin_email}}"
 
 # php
 php_version: 8.3

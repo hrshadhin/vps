@@ -5,33 +5,35 @@
   become: true
   vars_files:
     - vars/default.yml
+  vars:
+    - ng_primary_domain: "{{ lookup('env', 'PRIMARY_DOMAIN') | default('example.com', True) }}"
   roles:
-    - base
-    - zsh
-    - docker
-    - wireguard
-    - postgresql
-    - mariadb
-    - redis
+    # - base
+    # - zsh
+    # - docker
+    # - wireguard
+    # - postgresql
+    # - mariadb
+    # - redis
     - nginx
-    - php
-    - firefly3
-    - websites
-    - vaultwarden
-    - shiori
-    - dnote
-    - focalboard
-    - monica
-    - searx
-    - invidious
-    - backup
-    - blocky
-    - monitoring
-    - owntracks
-    - radicale
-    - ittools
-    - langtool
-
+    # - php
+    # - firefly3
+    # - websites
+    # - vaultwarden
+    # - shiori
+    # - dnote
+    # - focalboard
+    # - monica
+    # - searx
+    # - invidious
+    # - backup
+    # - blocky
+    # - monitoring
+    # - owntracks
+    # - radicale
+    # - ittools
+    # - langtool
+    # coturn - #todo 3478
   tasks:
     - name: Setup ad-block list update hosts git automation
       ansible.builtin.include_tasks: tasks/hosts-git.yml

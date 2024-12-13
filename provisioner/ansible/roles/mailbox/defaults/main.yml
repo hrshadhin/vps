@@ -1,3 +1,8 @@
 ---
 # defaults file for mailbox
 #mail_domain: setme
+postbox_ufw_rules:
+  - { rule: "allow", port: 25, proto: "tcp", src: "any" }
+  - { rule: "allow", port: 465, proto: "tcp", src: "any" }
+  - { rule: "allow", port: 587, proto: "tcp", src: "any" }
+  - { rule: "allow", port: 993, proto: "tcp", src: "any" }

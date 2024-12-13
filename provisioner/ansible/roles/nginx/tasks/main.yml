@@ -8,14 +8,14 @@
 
 - name: Install Let's Encrypt Package
   apt:
-    name: "{{ certbot_packages }}"
+    name: "{{ ng_certbot_packages }}"
     update_cache: yes
     state: latest
-  when: setup_ssl
+  when: ng_setup_ssl
 
-- name: Create and Install Cert Using {{ certbot_plugin }} Plugin for {{primary_domain}}
-  command: "certbot --{{ certbot_plugin }} -d  {{ primary_domain }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
-  when: setup_ssl
+- name: Create and install Cert using nginx Plugin for {{ng_primary_domain}}
+  command: "certbot --nginx -d {{ ng_primary_domain }} -m {{ ng_certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: ng_setup_ssl
 
 - name: Copy nginx snippets
   copy:
@@ -27,13 +27,31 @@
     - headers.conf
     - cloud-flare-ips.conf
 
-- name: Configure nginx
+- name: Hide nginx version information
+  lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: "^# server_tokens off;$"
+    line: "server_tokens off;"
+
+- name: Configure nginx vhost
   template:
     src: default.conf.j2
     dest: /etc/nginx/sites-available/default
     mode: "0644"
+  vars:
+    enable_ssl: "{{ng_setup_ssl}}"
+    primary_domain: "{{ng_primary_domain}}"
   notify:
     - Restart nginx
+
+- name: Configure ufw rules
+  ufw: rule={{ item.rule }} port={{ item.port }} proto={{ item.proto }} src={{ item.src }}
+  with_items: "{{ng_ufw_rules}}"
+  notify:
+    - restart ufw
+  when: is_install_ufw and ng_ufw_rules != []
+  tags:
+    - update_rules
 
 - name: Flush all handlers at this point
   meta: flush_handlers

@@ -5,10 +5,11 @@
   become: true
   vars_files:
     - vars/default.yml
+  vars:
+    - ng_primary_domain: "{{mail_domain}}"
   roles:
-    - base
-    - zsh
-    - docker
+    # - base
+    # - zsh
+    # - docker
     - nginx
-    - mailbox # incomplete
-    - roundcube
+    # - mailbox # incomplete

@@ -65,11 +65,11 @@
 
 - name: Install fail2ban
   include_tasks: fail2ban.yml
-  when: install_fail2ban
+  when: is_install_fail2ban
 
 - name: Install ufw
   include_tasks: ufw.yml
-  when: install_ufw
+  when: is_install_ufw
   tags:
     - ufw
 

@@ -10,7 +10,7 @@ secondary_user_password: Super7secre8
 user_passfile: .password.hash
 ssh_port: 22
 ssh_pub_key_path: ~/.ssh/id_rsa.pub
-install_fail2ban: False
-install_ufw: False
+is_install_fail2ban: False
+is_install_ufw: False
 
 ufw_rules: []

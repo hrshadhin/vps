@@ -2,11 +2,12 @@
 - name: Add MariaDB repository key
   apt_key:
     url: https://mariadb.org/mariadb_release_signing_key.asc
+    keyring: /etc/apt/trusted.gpg.d/mariadb.gpg
     state: present
 
 - name: Add official MariaDB {{mariadb_version}} ubuntu {{ ansible_distribution_release }} repository
   apt_repository:
-    repo: "deb [arch=amd64,arm64] https://dlm.mariadb.com/repo/mariadb-server/{{mariadb_version}}/repo/ubuntu {{ ansible_distribution_release }} main"
+    repo: "deb [arch=amd64,arm64 signed-by=/etc/apt/trusted.gpg.d/mariadb.gpg] https://dlm.mariadb.com/repo/mariadb-server/{{mariadb_version}}/repo/ubuntu {{ ansible_distribution_release }} main"
     state: present
 
 - name: Install MariaDB dependencies
@@ -32,7 +33,7 @@
   notify:
     - Restart MariaDB
 
-- name: Update MariaDB root password for all root accounts
+- name: Update MariaDB root password for all host
   mysql_user:
     name: root
     host: "{{ item }}"
@@ -42,8 +43,8 @@
     login_password: "{{ mariadb_root_password }}"
   with_items:
     - 127.0.0.1
-    - ::1
     - localhost
+    - "{{ (mariadb_allow_remote_connection) | ternary('%','::1') }}"
 
 - name: Ensure anonymous users are not in the database
   mysql_user:
@@ -60,70 +61,43 @@
     login_user: root
     login_password: "{{ mariadb_root_password }}"
 
-- name: Add some databases
+- name: Create users
+  mysql_user:
+    name: "{{ item.value.user }}"
+    password: "{{ item.value.pass }}"
+    host: "{{ (mariadb_allow_remote_connection) | ternary('%','localhost') }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    state: present
+  loop: "{{ lookup('ansible.builtin.dict', mariadb_users, wantlist=True) }}"
+  loop_control:
+    label: "{{item.key}}"
+  when: mariadb_users is defined
+  tags: create-users
+
+- name: Create databases
   mysql_db:
-    name: "{{item}}"
+    name: "{{item.key}}"
     state: present
     login_user: root
     login_password: "{{ mariadb_root_password }}"
-  with_items: "{{mariadb_database_names}}"
+  loop: "{{ lookup('ansible.builtin.dict', mariadb_databases, wantlist=True) }}"
+  loop_control:
+    label: "{{item.key}}"
+  when: mariadb_databases is defined
   tags: create-databases
 
-- name: Add some databases 2
-  mysql_db:
-    name: "{{item}}"
-    state: present
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  with_items: "{{mariadb_database_names2}}"
-  tags: create-databases
-
-- name: Allow {{mariadb_user}} connections from multiple hosts
+- name: Give perssion to users on some databases
   mysql_user:
-    name: "{{mariadb_user}}"
-    host: "{{ item }}"
-    password: "{{ mariadb_user_password }}"
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  with_items: "{{allowed_hosts|select|list}}"
-  vars:
-    allowed_hosts:
-      - 127.0.0.1
-      - localhost
-      - "{{ (mariadb_allow_remote_connection) | ternary('%','') }}"
-
-- name: Allow {{mariadb_user2}} connections from multiple hosts
-  mysql_user:
-    name: "{{mariadb_user2}}"
-    host: "{{ item }}"
-    password: "{{ mariadb_user2_password }}"
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  with_items: "{{allowed_hosts|select|list}}"
-  vars:
-    allowed_hosts:
-      - 127.0.0.1
-      - localhost
-      - "{{ (mariadb_allow_remote_connection) | ternary('%','') }}"
-
-- name: Give perssion to {{mariadb_user}} on some databases
-  mysql_user:
-    name: "{{mariadb_user}}"
+    name: "{{item.value}}"
     append_privs: true
-    priv: "{{item}}.*:ALL"
+    priv: "{{item.key}}.*:ALL"
     login_user: root
     login_password: "{{ mariadb_root_password }}"
-  with_items: "{{mariadb_database_names}}"
-  tags: create-databases
-
-- name: Give perssion to {{mariadb_user2}} on some databases
-  mysql_user:
-    name: "{{mariadb_user2}}"
-    append_privs: true
-    priv: "{{item}}.*:ALL"
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  with_items: "{{mariadb_database_names2}}"
+  loop: "{{ lookup('ansible.builtin.dict', mariadb_databases, wantlist=True) }}"
+  loop_control:
+    label: "{{item.key}}"
+  when: mariadb_databases is defined
   tags: create-databases
 
 - name: Flush all handlers at this point

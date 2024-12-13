@@ -92,5 +92,11 @@
   when: pg_databases is defined
   tags: create-databases
 
+- name: Configure ufw rule
+  ufw: "rule=allow port=6379 proto=tcp src={{docker_host_ip}}/16"
+  when: is_install_ufw
+  notify:
+    - restart ufw
+
 - name: Flush all handlers at this point
   meta: flush_handlers
