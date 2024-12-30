@@ -30,8 +30,8 @@
 - name: Hide nginx version information
   lineinfile:
     path: /etc/nginx/nginx.conf
-    regexp: "^# server_tokens off;$"
-    line: "server_tokens off;"
+    regexp: "^	# server_tokens off;$"
+    line: "	server_tokens off;"
 
 - name: Configure nginx vhost
   template:

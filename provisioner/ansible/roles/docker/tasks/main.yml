@@ -78,10 +78,10 @@
     mode: "0755"
   when: docker_compose_install
 
-- name: Install docker-compose python package
-  pip:
-    name: docker-compose
-  when: docker_compose_install
+# - name: Install docker-compose python package
+#   pip:
+#     name: docker-compose
+#   when: docker_compose_install
 
 - name: Reset ssh connection to allow user changes to take affect
   meta: reset_connection

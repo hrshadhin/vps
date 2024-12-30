@@ -30,6 +30,8 @@
       - tmux
       - net-tools
       - python3-venv
+      - wget
+      - vim
 
 - name: Update Timezone to {{time_zone}}
   timezone:

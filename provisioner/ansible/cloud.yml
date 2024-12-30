@@ -6,7 +6,7 @@
   vars_files:
     - vars/default.yml
   vars:
-    - ng_primary_domain: "{{ lookup('env', 'PRIMARY_DOMAIN') | default('example.com', True) }}"
+    ng_primary_domain: "homelab.infcloud.xyz"
   roles:
     # - base
     # - zsh
@@ -15,7 +15,7 @@
     # - postgresql
     # - mariadb
     # - redis
-    - nginx
+    # - nginx
     # - php
     # - firefly3
     # - websites
@@ -26,7 +26,7 @@
     # - monica
     # - searx
     # - invidious
-    # - backup
+    - backup
     # - blocky
     # - monitoring
     # - owntracks

@@ -5,7 +5,7 @@ sysadmin_email: "{{ lookup('env', 'SYSTEMADMIN_EMAIL') | default('setme', True) 
 gitops_email: "{{ lookup('env', 'GITOPS_EMAL') | default('setme', True) }}"
 gitops_name: H.R. Shadhin
 time_zone: Asia/Dhaka
-add_secondary_user: true
+add_secondary_user: false
 # key empty if want only ssh key based login
 secondary_user_password:
 ssh_pub_key_path: ~/.ssh/id_rsa_vp5.pub
@@ -180,7 +180,7 @@ mariadb_databases:
   vatconsultant:  "{{mariadb_users.vu.user}}"
 
 # nginx
-ng_setup_ssl: true
+ng_setup_ssl: false
 ng_certbot_mail_address: "{{sysadmin_email}}"
 
 # php
@@ -301,7 +301,7 @@ monica_mfa_enabled: "true"
 monica_dav_enabled: "false"
 
 # backup
-gdrive_cli_install: false
+gdrive_cli_install: true
 gdrive_version: 2.1.1
 gdrive_build_binary: true
 gservice_account_json_base64: "{{ lookup('env', 'GSERVICE_ACCOUNT_JSON_BASE64') | default('setme', True) }}"
@@ -310,7 +310,6 @@ gdrive_db_folder_id: "{{ lookup('env', 'GDRIVE_DB_FOLDER_ID') | default('setme',
 
 ## apps
 backup_apps: "{
-  '{{primary_domain}}': ['*'],
   '{{vaultwarden_domain}}': ['data/'],
   '{{shiori_domain_name}}': ['archive/', 'thumb/'],
   '{{firefly3_domain}}': ['.env', 'storage/oauth-private.key', 'storage/oauth-public.key', 'storage/upload/'],
@@ -323,12 +322,12 @@ backup_sites: "{{static_sites}}"
 backup_exclude_sites: "{{ lookup('env', 'BACKUP_EXCLUDE_WEBSITES') | default('', True) | split(',') | select | map('trim') }}"
 
 ## DBs
-mariadb_backup_user: "{{ mariadb_user }}"
-mariadb_backup_user_password: "{{ mariadb_user_password }}"
-backup_mariadbs: "{{ mariadb_database_names }}"
+mariadb_backup_user: "{{ mariadb_users.wu.user }}"
+mariadb_backup_user_password: "{{mariadb_users.wu.pass }}"
+backup_mariadbs: "{{ mariadb_databases.keys() }}"
 postgresdb_backup_user: "{{ pg_user }}"
 postgresdb_backup_user_password: "{{ pg_user_password }}"
-backup_postgresdbs: "{{ pg_database_names }}"
+backup_postgresdbs: "{{ pg_databases.keys() }}"
 
 ## Blocky
 blocky_doh: true

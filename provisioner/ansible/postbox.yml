@@ -6,7 +6,7 @@
   vars_files:
     - vars/default.yml
   vars:
-    - ng_primary_domain: "{{mail_domain}}"
+    ng_primary_domain: "{{mail_domain}}"
   roles:
     # - base
     # - zsh

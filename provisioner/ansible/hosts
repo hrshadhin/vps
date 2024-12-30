@@ -1,5 +1,6 @@
 [CLOUD]
 cloud ansible_host=cloud
+homelab ansible_host=homelab
 
 [POSTBOX]
 postbox ansible_host=postbox
