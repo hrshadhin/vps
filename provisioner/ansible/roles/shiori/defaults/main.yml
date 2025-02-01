@@ -2,6 +2,7 @@
 # defaults file for shiori
 shiori_version: 1.5.0
 shiori_domain_name: example.com
+shiori_enable_ssl: false
 shiori_directory_name: "{{shiori_domain_name}}"
 shiori_binary_install_dir: /usr/local/bin
 shiori_port: 8080

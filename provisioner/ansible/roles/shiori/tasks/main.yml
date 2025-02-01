@@ -59,10 +59,11 @@
 
 - name: Ensure {{shiori_domain_name}} file exists for nginx
   template:
-    src: nginx_http.conf.j2
+    src: nginx.conf.j2
     dest: /etc/nginx/sites-available/{{shiori_domain_name}}
     mode: "0644"
   vars:
+    enable_ssl: false
     domain_name: "{{shiori_domain_name}}"
 
 - name: Enable {{shiori_domain_name}} nginx config
@@ -75,9 +76,9 @@
 - name: Flush all handlers at this point
   meta: flush_handlers
 
-- name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{shiori_domain_name}}
-  command: "certbot --{{ certbot_plugin }} -d  {{ shiori_domain_name }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
-  when: is_local is defined and not is_local
+- name: Create and Install SSL Cert for {{shiori_domain_name}}
+  command: "certbot --nginx -d  {{ shiori_domain_name }} -m {{ ng_certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: shiori_enable_ssl
 
 - name: Copy {{shiori_domain_name}} https nginx config
   template:
@@ -85,7 +86,8 @@
     dest: /etc/nginx/sites-available/{{shiori_domain_name}}
     mode: "0644"
   vars:
+    enable_ssl: "{{shiori_enable_ssl}}"
     domain_name: "{{shiori_domain_name}}"
   notify:
     - Restart nginx
-  when: is_local is defined and not is_local
+  when: shiori_enable_ssl

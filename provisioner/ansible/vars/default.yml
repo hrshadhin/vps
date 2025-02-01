@@ -228,9 +228,12 @@ vaultwarden_smtp_password: "{{ lookup('env', 'SMTP_PASSWORD') | default('setme',
 
 # websites
 static_sites: "{{ lookup('env', 'STATIC_WEBSITES') | default('', True) | split(',') | select | map('trim') }}"
+static_sites_enable_ssl: True
 
 # archive/bookmarks
+shiori_version: 1.7.4
 shiori_domain_name: "{{ lookup('env', 'SHIORI_DOMAIN') | default('setme', True) }}"
+shiori_enable_ssl: True
 shiori_port: 3001
 shiori_dbms: postgresql
 shiori_db_port: 5432

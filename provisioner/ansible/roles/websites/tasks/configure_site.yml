@@ -9,10 +9,11 @@
 
 - name: Ensure {{site}} file exists for nginx
   template:
-    src: nginx_http.conf.j2
+    src: nginx.conf.j2
     dest: /etc/nginx/sites-available/{{site}}
     mode: "0644"
   vars:
+    enable_ssl: false
     domain_name: "{{site}}"
 
 - name: Enable {{site}} nginx config
@@ -22,8 +23,12 @@
     state: link
   notify: Restart nginx
 
-- name: Create and Install SSL Cert Using {{ certbot_plugin }} Plugin for {{site}}
-  command: "certbot --{{ certbot_plugin }} -d  {{ site }} -m {{ certbot_mail_address }} --agree-tos --noninteractive --redirect"
+- name: Flush all handlers at this point
+  meta: flush_handlers
+
+- name: Create and Install SSL Cert for {{site}}
+  command: "certbot --nginx -d  {{ site }} -m {{ ng_certbot_mail_address }} --agree-tos --noninteractive --redirect"
+  when: static_sites_enable_ssl
 
 - name: Copy {{site}} https nginx config
   template:
@@ -31,6 +36,8 @@
     dest: /etc/nginx/sites-available/{{site}}
     mode: "0644"
   vars:
+    enable_ssl: "{{static_sites_enable_ssl}}"
     domain_name: "{{site}}"
   notify:
     - Restart nginx
+  when: static_sites_enable_ssl

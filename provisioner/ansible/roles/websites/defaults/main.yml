@@ -1,3 +1,4 @@
 ---
 # defaults file for websites
 static_sites: []
+static_sites_enable_ssl: false

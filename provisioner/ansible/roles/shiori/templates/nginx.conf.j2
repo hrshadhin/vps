@@ -4,21 +4,27 @@ upstream shioribackend {
 	server	127.0.0.1:{{shiori_port}};
 }
 
+{% if enable_ssl %}
 server {
 	if ($host = {{domain_name}}) {
 		return 301 https://$host$request_uri;
 	}
-	
+
 	listen 80;
 	server_name {{domain_name}};
 	return 404;
 }
+{% endif %}
 
 server {
 	##
 	# Basic Settings
 	#
+{% if enable_ssl %}	
 	listen 443 ssl;
+{% else %}
+	listen 80;
+{% endif %}
 	server_name {{domain_name}};
 
 	root /var/www/html/{{domain_name}};
@@ -29,6 +35,7 @@ server {
 	include /etc/nginx/snippets/headers.conf;	
 	include /etc/nginx/snippets/cloud-flare-ips.conf;
 
+{% if enable_ssl %}
 	##
 	# SSL Settings
 	##
@@ -36,6 +43,7 @@ server {
 	ssl_certificate_key /etc/letsencrypt/live/{{domain_name}}/privkey.pem;
 	include /etc/letsencrypt/options-ssl-nginx.conf;
 	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+{% endif %}
 
 	##
 	# Path & Error Settings
